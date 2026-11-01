@@ -1,0 +1,8 @@
+{
+  "category_groups": [
+    { "name": "Housing", "type": "expense", "categories": [{ "name": "Rent" }] },
+    { "name": "Food", "type": "expense", "categories": [{ "name": "Groceries" }] },
+    { "name": "Income", "type": "income", "categories": [{ "name": "Paychecks" }] },
+    { "name": "Transfers", "type": "transfer", "categories": [{ "name": "Transfer" }] }
+  ]
+}

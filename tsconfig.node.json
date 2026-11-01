@@ -10,9 +10,11 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "src/server/**/*.ts"]
+  "include": ["vite.config.ts", "src/server/**/*.ts", "scripts/snapshot/**/*.ts"]
 }

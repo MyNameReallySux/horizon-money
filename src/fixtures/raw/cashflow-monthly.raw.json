@@ -1,0 +1,17 @@
+{
+  "data": [
+    { "entity_name": "Income", "entity_type": "category_group", "month": "2026-09-01", "amount": 6400 },
+    { "entity_name": "Irregular Income", "entity_type": "category_group", "month": "2026-09-01", "amount": 100 },
+    { "entity_name": "Housing", "entity_type": "category_group", "month": "2026-09-01", "amount": -1800 },
+    { "entity_name": "Food", "entity_type": "category_group", "month": "2026-09-01", "amount": -900.25 },
+    { "entity_name": "Investment", "entity_type": "category_group", "month": "2026-09-01", "amount": -500 },
+    { "entity_name": "Transfers", "entity_type": "category_group", "month": "2026-09-01", "amount": -1000 },
+    { "entity_name": "Housing", "entity_type": "category_group", "month": "2026-08-01", "amount": -1800 },
+    { "entity_name": "Income", "entity_type": "category_group", "month": "2026-08-01", "amount": 6400 },
+    { "entity_name": "Food", "entity_type": "category_group", "month": "2026-08-01", "amount": -850 },
+    { "entity_name": "Food", "entity_type": "category_group", "month": "2026-08-01", "amount": 25 },
+    { "entity_name": "Broken", "entity_type": "category_group", "amount": -1 }
+  ],
+  "total_income": 12900,
+  "total_expense": -7000
+}

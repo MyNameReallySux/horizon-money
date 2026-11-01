@@ -1,0 +1,12 @@
+{
+  "recurring_expense_streams": {
+    "recurring_transaction_streams": [
+      { "name": "Sample Streaming", "amount": 15.99, "frequency": "monthly", "category": "Entertainment", "next_forecasted_date": "2026-11-08" },
+      { "name": "Sample Insurance", "amount": -600, "frequency": "quarterly", "category": "Insurance", "next_forecasted_date": "2026-12-01" },
+      { "name": "Sample Storage", "amount": 100, "frequency": "yearly", "category": "Software", "next_forecasted_date": "2027-02-10" },
+      { "name": "Sample Pet", "amount": 25, "frequency": "weekly", "category": "Pets", "next_forecasted_date": "2026-11-04" },
+      { "name": "Sample Gym", "amount": 40, "frequency": "every_two_weeks", "category": "Health", "next_forecasted_date": "2026-11-05" },
+      { "name": "Sample Odd", "amount": 10, "frequency": "semimonthly", "category": "Other", "next_forecasted_date": "2026-11-15" }
+    ]
+  }
+}

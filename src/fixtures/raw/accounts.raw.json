@@ -1,0 +1,20 @@
+{
+  "accounts": [
+    { "id": "acct-01", "name": "Sample Checking", "type": "Checking", "balance": 4200.5, "institution": "Sample Bank" },
+    { "id": "acct-02", "name": "Sample Savings", "type": "Savings", "balance": 9500 },
+    { "id": "acct-03", "name": "Sample Card", "type": "Credit Card", "balance": -3200, "interest_rate": 21.99 },
+    { "id": "acct-04", "name": "Sample Card Positive", "type": "Credit Card", "balance": 1800, "interest_rate": 18.49 },
+    { "id": "acct-05", "name": "Sample Mortgage", "type": "Mortgage", "balance": -250000, "interest_rate": 6.25 },
+    { "id": "acct-06", "name": "Sample Retirement", "type": "401k", "balance": 52000 },
+    { "id": "acct-07", "name": "Sample Coins", "type": "Cryptocurrency", "balance": 800 },
+    { "id": "acct-08", "name": "Sample House", "type": "Primary Home", "balance": 320000 },
+    { "id": "acct-09", "name": "Sample Vehicle", "type": "Car", "balance": 14000 },
+    { "id": "acct-10", "name": "Sample Misc", "type": "Other", "balance": 50 }
+  ],
+  "total_asset_balance": 400000,
+  "total_liabilities_balance": -255000,
+  "finicity_excluded": {
+    "hidden_account_count": 2,
+    "institutions": ["Sample Credit Union", "Sample Brokerage House"]
+  }
+}

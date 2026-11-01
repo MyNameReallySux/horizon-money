@@ -1,0 +1,6 @@
+{
+  "goals": [
+    { "id": "goal-01", "name": "Sample Vacation Fund", "current_amount": 1200, "target_amount": 4000, "target_date": "2027-06-01" },
+    { "id": "goal-02", "name": "Sample Open Ended", "current_amount": 10, "target_amount": 0 }
+  ]
+}
