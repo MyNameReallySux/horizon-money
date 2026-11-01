@@ -1,0 +1,22 @@
+# Which planning/tracking surfaces this repo maps to.
+# Read by the `triage` skill (and any skill that needs the repo↔project link).
+# `tracker` and `initiative_registry` decide which side of the machine this repo is on: a repo
+# declaring `linear` for either is personal, and initiative skills read PERSONAL_INITIATIVE_REGISTRY
+# for it instead of the machine's INITIATIVE_REGISTRY. provision-repo fills the first two lines
+# from ISSUE_TRACKER and deletes them when it is unset, or `initiative_registry` on a Jira repo.
+# Hold no absolute paths here; per-machine paths resolve through local-config keys
+# (docs/machine-local-config.md, "Per-machine paths stay out of project-map").
+
+tracker: linear                           # linear | jira
+initiative_registry: linear   # linear on a Linear repo; omit on a Jira one
+
+# Keep the block for the tracker above and delete the other.
+linear:
+  team: PER
+  project: Horizon Money
+
+obsidian:
+  project: Software/Horizon Money
+
+github:
+  repo: MyNameReallySux/horizon-money

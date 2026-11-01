@@ -1,0 +1,20 @@
+# Real financial data never enters git. See README "Your data".
+private/
+data/
+*.snapshot.json
+!src/fixtures/*.snapshot.json
+*.pdf
+*.csv
+*.ofx
+*.qfx
+.env
+.env.*
+!.env.example
+
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.DS_Store
+Thumbs.db
