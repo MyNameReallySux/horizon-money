@@ -33,28 +33,36 @@ This skill will not:
 2. **Fetch and save each file below.** Save the MCP response verbatim to `<dataDir>/raw/<file>`
    with the Write tool; do not reformat or trim it. If the harness saved a large result to a
    file instead of returning it inline, copy that file into `raw/` rather than re-typing it.
-   Use intent `financial_planning` (or `cash_flow_planning` for GetCashFlow).
+   Every call takes `intent`; use `cash_flow_planning` for all of them. Responses arrive
+   wrapped as `{"result": "<JSON string>"}`; save them as they arrive, the assembler unwraps.
 
    | File | Tool and arguments |
    |---|---|
-   | `accounts.json` | `GetAccounts` |
-   | `categories.json` | `GetCategories` |
-   | `cashflow-monthly.json` | `GetCashFlow`, `base_query` grouped by month and category group, over the last 13 full months |
-   | `spending-by-category.json` | `GetCashFlow`, `base_query` grouped by month and category, over the same 13 months |
-   | `recurring.json` | `GetRecurring` |
-   | `goals.json` | `GetGoals` |
+   | `accounts.json` | `GetAccounts` with `intent` only |
+   | `categories.json` | `GetCategories` with `intent` only |
+   | `cashflow-monthly.json` | `GetCashFlow`, see below, grouped by `category_group` |
+   | `spending-by-category.json` | `GetCashFlow`, see below, grouped by `category` |
+   | `recurring.json` | `GetRecurring` with `include_liabilities` set to `false` (bills and subscriptions only; credit-card bill streams are not spending) |
+   | `goals.json` | `GetGoals` with `intent` only |
    | `paychecks.json` | `GetTransactions`, see below |
 
-   For the two GetCashFlow calls, read the tool's schema for the exact `base_query` shape:
-   a date range from the first day of the month 13 months before the current month through the
-   last day of the previous month, grouped by month and then by `category_group` (first call)
-   or `category` (second call).
+   For the two `GetCashFlow` calls, set `start_date` to the first day of the month 13 months
+   before the current month and `end_date` to the last day of the previous month (ISO dates,
+   inclusive). `base_query` is a JSON **string**:
+   `{"group_by_time": "month", "group_by_entity": "category_group"}` for the first file and
+   `{"group_by_time": "month", "group_by_entity": "category"}` for the second. Optionally pass
+   a `filters` JSON string with `exclude_accounts` (an array of account names) when the user
+   has duplicated accounts that double-count; only the user supplies those names.
 
-   For `paychecks.json`, call `GetTransactions` with `filters`
-   `{"transaction_type":"Credit","categories":["Paychecks"]}`, 100 results at a time, repeating
-   with the next page until the response reports `truncated` as false. Concatenate every page's
-   `transactions` into one `{"transactions": [...]}` object and save that. If the user has no
-   Paychecks category, skip this file; the assembler warns and leaves paychecks empty.
+   For `paychecks.json`, call `GetTransactions` with the same `start_date` and `end_date`,
+   `filters` `{"transaction_type": "Credit", "categories": ["Paychecks"]}` (a JSON string),
+   `limit` 100 and `offset` 0. While the response's `truncated` is true, call again with
+   `offset` set to its `next_offset`. Concatenate every page's `transactions` into one
+   `{"transactions": [...]}` object and save that. If the user has no Paychecks category, skip
+   this file; the assembler warns and leaves paychecks empty.
+
+   Responses may carry a `finicity_excluded` block listing hidden institutions; leave it in
+   the file, it feeds the snapshot's `coverage`.
 
    If a tool fails, keep going with the others and say which file is missing. Only
    `accounts.json` is required.
