@@ -1,0 +1,2 @@
+#!/bin/sh
+exec node scripts/check-leaks.mjs --staged
