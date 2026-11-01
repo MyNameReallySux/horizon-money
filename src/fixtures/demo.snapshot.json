@@ -1,23 +1,26 @@
 {
-  "version": 1,
+  "version": 2,
   "generatedAt": "2026-11-01T09:00:00Z",
   "source": "fixture",
   "currency": "USD",
   "accounts": [
     {
       "id": "acct-checking",
+      "source": "monarch",
       "name": "Everyday Checking",
       "kind": "checking",
       "balance": 4200
     },
     {
       "id": "acct-savings",
+      "source": "monarch",
       "name": "Rainy Day Savings",
       "kind": "savings",
       "balance": 9500
     },
     {
       "id": "acct-card-a",
+      "source": "monarch",
       "name": "Rewards Card A",
       "kind": "credit",
       "balance": -3200,
@@ -25,6 +28,7 @@
     },
     {
       "id": "acct-card-b",
+      "source": "monarch",
       "name": "Travel Card B",
       "kind": "credit",
       "balance": -1800,
@@ -32,6 +36,7 @@
     },
     {
       "id": "acct-auto",
+      "source": "monarch",
       "name": "Auto Loan",
       "kind": "loan",
       "balance": -11500,
@@ -42,7 +47,8 @@
       "name": "Sample Brokerage",
       "kind": "investment",
       "balance": 25000,
-      "manual": true
+      "source": "manual",
+      "asOf": "2026-10-28"
     }
   ],
   "cashflowMonthly": [
@@ -517,6 +523,14 @@
       "receivedAmount": 3200
     }
   ],
+  "paySchedule": {
+    "cadence": "biweekly",
+    "anchorDate": "2026-06-05",
+    "expectedAmount": 3200
+  },
+  "coverage": {
+    "hiddenInstitutions": []
+  },
   "goals": [
     {
       "id": "goal-groceries-week",
