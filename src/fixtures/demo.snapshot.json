@@ -1,0 +1,564 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-01T09:00:00Z",
+  "source": "fixture",
+  "currency": "USD",
+  "accounts": [
+    {
+      "id": "acct-checking",
+      "name": "Everyday Checking",
+      "kind": "checking",
+      "balance": 4200
+    },
+    {
+      "id": "acct-savings",
+      "name": "Rainy Day Savings",
+      "kind": "savings",
+      "balance": 9500
+    },
+    {
+      "id": "acct-card-a",
+      "name": "Rewards Card A",
+      "kind": "credit",
+      "balance": -3200,
+      "apr": 21.99
+    },
+    {
+      "id": "acct-card-b",
+      "name": "Travel Card B",
+      "kind": "credit",
+      "balance": -1800,
+      "apr": 18.49
+    },
+    {
+      "id": "acct-auto",
+      "name": "Auto Loan",
+      "kind": "loan",
+      "balance": -11500,
+      "apr": 6.9
+    },
+    {
+      "id": "acct-brokerage",
+      "name": "Sample Brokerage",
+      "kind": "investment",
+      "balance": 25000,
+      "manual": true
+    }
+  ],
+  "cashflowMonthly": [
+    {
+      "month": "2025-11",
+      "income": 6400,
+      "expense": -5200
+    },
+    {
+      "month": "2025-12",
+      "income": 6400,
+      "expense": -5900
+    },
+    {
+      "month": "2026-01",
+      "income": 6800,
+      "expense": -5600
+    },
+    {
+      "month": "2026-02",
+      "income": 6400,
+      "expense": -5100
+    },
+    {
+      "month": "2026-03",
+      "income": 6400,
+      "expense": -5000
+    },
+    {
+      "month": "2026-04",
+      "income": 6400,
+      "expense": -5300
+    },
+    {
+      "month": "2026-05",
+      "income": 7000,
+      "expense": -5500
+    },
+    {
+      "month": "2026-06",
+      "income": 6400,
+      "expense": -5400
+    },
+    {
+      "month": "2026-07",
+      "income": 6400,
+      "expense": -5100
+    },
+    {
+      "month": "2026-08",
+      "income": 6400,
+      "expense": -5700
+    },
+    {
+      "month": "2026-09",
+      "income": 6800,
+      "expense": -5200
+    },
+    {
+      "month": "2026-10",
+      "income": 6400,
+      "expense": -5300
+    }
+  ],
+  "spendingByCategory": [
+    {
+      "month": "2026-05",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-05",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-05",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -320
+    },
+    {
+      "month": "2026-05",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -160
+    },
+    {
+      "month": "2026-05",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -450
+    },
+    {
+      "month": "2026-05",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -220
+    },
+    {
+      "month": "2026-05",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -140
+    },
+    {
+      "month": "2026-05",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -30
+    },
+    {
+      "month": "2026-06",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-06",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-06",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -350
+    },
+    {
+      "month": "2026-06",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -190
+    },
+    {
+      "month": "2026-06",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -410
+    },
+    {
+      "month": "2026-06",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -180
+    },
+    {
+      "month": "2026-06",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -170
+    },
+    {
+      "month": "2026-06",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -60
+    },
+    {
+      "month": "2026-07",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-07",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-07",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -310
+    },
+    {
+      "month": "2026-07",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -150
+    },
+    {
+      "month": "2026-07",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -440
+    },
+    {
+      "month": "2026-07",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -210
+    },
+    {
+      "month": "2026-07",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -130
+    },
+    {
+      "month": "2026-07",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -90
+    },
+    {
+      "month": "2026-08",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-08",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-08",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -340
+    },
+    {
+      "month": "2026-08",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -180
+    },
+    {
+      "month": "2026-08",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -400
+    },
+    {
+      "month": "2026-08",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -240
+    },
+    {
+      "month": "2026-08",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -160
+    },
+    {
+      "month": "2026-08",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -50
+    },
+    {
+      "month": "2026-09",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-09",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-09",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -300
+    },
+    {
+      "month": "2026-09",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -210
+    },
+    {
+      "month": "2026-09",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -430
+    },
+    {
+      "month": "2026-09",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -200
+    },
+    {
+      "month": "2026-09",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -120
+    },
+    {
+      "month": "2026-09",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -80
+    },
+    {
+      "month": "2026-10",
+      "group": "Housing",
+      "category": "Rent",
+      "amount": -1800
+    },
+    {
+      "month": "2026-10",
+      "group": "Food",
+      "category": "Groceries",
+      "amount": -650
+    },
+    {
+      "month": "2026-10",
+      "group": "Food",
+      "category": "Dining Out",
+      "amount": -330
+    },
+    {
+      "month": "2026-10",
+      "group": "Transport",
+      "category": "Fuel",
+      "amount": -170
+    },
+    {
+      "month": "2026-10",
+      "group": "Transport",
+      "category": "Auto Loan Payment",
+      "amount": -390
+    },
+    {
+      "month": "2026-10",
+      "group": "Utilities",
+      "category": "Electric and Water",
+      "amount": -230
+    },
+    {
+      "month": "2026-10",
+      "group": "Lifestyle",
+      "category": "Entertainment",
+      "amount": -150
+    },
+    {
+      "month": "2026-10",
+      "group": "Health",
+      "category": "Pharmacy",
+      "amount": -40
+    }
+  ],
+  "recurring": [
+    {
+      "name": "Rent",
+      "amount": -1800,
+      "frequency": "monthly",
+      "category": "Rent",
+      "nextDate": "2026-11-01"
+    },
+    {
+      "name": "Streaming Service",
+      "amount": -15,
+      "frequency": "monthly",
+      "category": "Entertainment",
+      "nextDate": "2026-11-08"
+    },
+    {
+      "name": "Gym Membership",
+      "amount": -40,
+      "frequency": "monthly",
+      "category": "Health",
+      "nextDate": "2026-11-12"
+    },
+    {
+      "name": "Auto Loan Payment",
+      "amount": -420,
+      "frequency": "monthly",
+      "category": "Auto Loan Payment",
+      "nextDate": "2026-11-15"
+    },
+    {
+      "name": "Car Insurance",
+      "amount": -600,
+      "frequency": "quarterly",
+      "category": "Transport",
+      "nextDate": "2026-12-01"
+    },
+    {
+      "name": "Cloud Storage",
+      "amount": -100,
+      "frequency": "yearly",
+      "category": "Utilities",
+      "nextDate": "2027-02-10"
+    },
+    {
+      "name": "Paycheck",
+      "amount": 3200,
+      "frequency": "biweekly",
+      "category": "Income",
+      "nextDate": "2026-11-06"
+    },
+    {
+      "name": "Pet Supplies",
+      "amount": -25,
+      "frequency": "weekly",
+      "category": "Lifestyle",
+      "nextDate": "2026-11-04"
+    }
+  ],
+  "paychecks": [
+    {
+      "expectedDate": "2026-06-05",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-06-05",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-06-19",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-06-19",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-07-03",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-07-03",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-07-17",
+      "expectedAmount": 3200,
+      "receivedDate": null,
+      "receivedAmount": null
+    },
+    {
+      "expectedDate": "2026-07-31",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-07-31",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-08-14",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-08-14",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-08-28",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-08-28",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-09-11",
+      "expectedAmount": 3200,
+      "receivedDate": null,
+      "receivedAmount": null
+    },
+    {
+      "expectedDate": "2026-09-25",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-09-25",
+      "receivedAmount": 3200
+    },
+    {
+      "expectedDate": "2026-10-09",
+      "expectedAmount": 3200,
+      "receivedDate": "2026-10-09",
+      "receivedAmount": 3200
+    }
+  ],
+  "goals": [
+    {
+      "id": "goal-groceries-week",
+      "name": "Weekly groceries",
+      "period": "week",
+      "metric": "spending:Groceries",
+      "target": 150
+    },
+    {
+      "id": "goal-dining-week",
+      "name": "Weekly dining out",
+      "period": "week",
+      "metric": "spending:Dining Out",
+      "target": 75
+    },
+    {
+      "id": "goal-savings-month",
+      "name": "Monthly savings",
+      "period": "month",
+      "metric": "savings",
+      "target": 1000
+    },
+    {
+      "id": "goal-cards-month",
+      "name": "Monthly card paydown",
+      "period": "month",
+      "metric": "debt-paydown",
+      "target": 500
+    },
+    {
+      "id": "goal-emergency-year",
+      "name": "Emergency fund",
+      "period": "year",
+      "metric": "savings-balance",
+      "target": 15000
+    },
+    {
+      "id": "goal-debt-year",
+      "name": "Card debt cleared",
+      "period": "year",
+      "metric": "card-debt",
+      "target": 0
+    }
+  ]
+}

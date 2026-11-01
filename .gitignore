@@ -1,6 +1,8 @@
 # Real financial data never enters git. See README "Your data".
 private/
 data/
+!/src/data/
+snapshot.json
 *.snapshot.json
 !src/fixtures/*.snapshot.json
 *.pdf
