@@ -23,6 +23,7 @@ const blockedPaths = [
   { re: /^(private|data)\//, why: 'personal data folder' },
   { re: /\.(pdf|csv|ofx|qfx)$/i, why: 'statement/paystub file type' },
   { re: /(^|\/)\.env(\.|$)(?!example)/, why: 'env file' },
+  { re: /(^|\/)snapshot\.json$/, why: 'live snapshot file' },
   { re: /\.snapshot\.json$/, why: 'snapshot outside src/fixtures/', allow: /^src\/fixtures\// },
 ];
 

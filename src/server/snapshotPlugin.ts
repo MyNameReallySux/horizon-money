@@ -9,6 +9,20 @@ const FIXTURE_PATH = join(process.cwd(), 'src', 'fixtures', 'demo.snapshot.json'
 
 type Next = () => void;
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+/**
+ * True when a Host header names a loopback host, ignoring any port. A missing header is
+ * rejected.
+ */
+export function isLoopbackHost(hostHeader: string | undefined): boolean {
+  if (!hostHeader) return false;
+  const host = hostHeader.startsWith('[')
+    ? hostHeader.slice(0, hostHeader.indexOf(']') + 1)
+    : hostHeader.split(':', 1)[0] ?? '';
+  return LOOPBACK_HOSTS.has(host.toLowerCase());
+}
+
 /**
  * Serves `GET /snapshot.json` from the resolved data dir in dev and preview, falling back to
  * the synthetic fixture. The file is read per request and never copied into `dist`, so a
@@ -35,6 +49,14 @@ export function snapshotPlugin(): Plugin {
 
   const handler = (req: IncomingMessage, res: ServerResponse, next: Next) => {
     if (req.method !== 'GET' || req.url?.split('?')[0] !== '/snapshot.json') return next();
+    // Registered before Vite's allowedHosts check, so without this a DNS-rebinding page could
+    // read the real snapshot. Not a post hook: Vite's SPA fallback rewrites the URL to
+    // /index.html before a post middleware would see it.
+    if (!isLoopbackHost(req.headers.host)) {
+      res.statusCode = 403;
+      res.end();
+      return;
+    }
     const useData = existsSync(dataFile);
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-store');

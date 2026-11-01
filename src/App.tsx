@@ -33,7 +33,10 @@ function computeKpis(snapshot: Snapshot): Kpi[] {
   const cardDebt = snapshot.accounts
     .filter((a) => a.kind === 'credit' && a.balance < 0)
     .reduce((sum, a) => sum + a.balance, 0);
-  const missed = snapshot.paychecks.filter((p) => p.receivedDate === null).length;
+  const today = new Date().toLocaleDateString('en-CA');
+  const missed = snapshot.paychecks.filter(
+    (p) => p.receivedDate === null && p.expectedDate < today,
+  ).length;
   return [
     { label: 'Net cash flow', value: usd.format(net), hint: latest?.month ?? 'no data' },
     { label: 'Card debt', value: usd.format(cardDebt), hint: 'credit balances owed' },

@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "check:leaks": "node scripts/check-leaks.mjs",
-    "prepare": "git config core.hooksPath .githooks"
+    "prepare": "git config core.hooksPath .githooks || exit 0"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -32,6 +32,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^6.4.5",
-    "vitest": "^3.2.7"
+    "vitest": "^4.1.12"
   }
 }
