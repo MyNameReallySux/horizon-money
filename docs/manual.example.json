@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "accounts": [
+    {
+      "id": "manual-warehouse-card",
+      "name": "Warehouse Club Card",
+      "kind": "credit",
+      "balance": -850.25,
+      "apr": 27.99,
+      "asOf": "2026-10-28"
+    },
+    {
+      "id": "manual-brokerage",
+      "name": "Brokerage",
+      "kind": "investment",
+      "balance": 18250,
+      "asOf": "2026-10-28"
+    },
+    {
+      "id": "manual-auto-loan",
+      "name": "Auto Loan",
+      "kind": "loan",
+      "balance": -9400,
+      "apr": 5.9,
+      "asOf": "2026-10-28"
+    }
+  ],
+  "paySchedule": {
+    "cadence": "biweekly",
+    "anchorDate": "2026-06-05",
+    "expectedAmount": 3200
+  }
+}
