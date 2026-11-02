@@ -1,0 +1,12 @@
+{
+  "JSONOUT": {
+    "responseBody": {
+      "payStubInfo": [
+        { "netPay": "$3,200.50", "checkNumber": "1001", "voucherNumber": "V-001", "payDate": "09/04/2026" },
+        { "netPay": "3200", "checkNumber": "1002", "voucherNumber": "V-002", "payDate": "2026-09-18" },
+        { "netPay": "n/a", "checkNumber": "1003", "voucherNumber": "V-003", "payDate": "10/02/2026" },
+        { "netPay": "100", "checkNumber": "1004", "voucherNumber": "", "payDate": "10/02/2026" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "JSONOUT": {
+    "responseBody": { "payStubYears": [{ "year": "2025" }, { "year": "2026" }, { "year": "bad" }] },
+    "responseProfile": { "status": "ok" }
+  }
+}
