@@ -92,7 +92,7 @@
 }
 
 .goal-ring-fill.goal-near {
-  stroke: #d97706;
+  stroke: var(--warn);
 }
 
 .goal-ring-fill.goal-bad {
@@ -145,7 +145,7 @@
 }
 
 .goal-text-near {
-  color: #d97706;
+  color: var(--warn);
 }
 
 .goal-text-bad {

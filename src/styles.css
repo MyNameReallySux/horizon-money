@@ -8,6 +8,7 @@
   --accent: #2563eb;
   --income: #16a34a;
   --expense: #dc2626;
+  --warn: #b45309;
   color-scheme: light dark;
 }
 
@@ -22,6 +23,7 @@
     --accent: #60a5fa;
     --income: #4ade80;
     --expense: #f87171;
+    --warn: #fbbf24;
   }
 }
 

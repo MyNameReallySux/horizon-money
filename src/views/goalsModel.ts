@@ -17,6 +17,14 @@ export interface GoalProgress {
 }
 
 /**
+ * The date the snapshot's month-to-date spend is as of (`YYYY-MM-DD`). Pace must use this, not
+ * the wall clock: a stale snapshot paced against a later date understates the weekly rate.
+ */
+export function snapshotDate(snapshot: Snapshot): string {
+  return snapshot.generatedAt.slice(0, 10);
+}
+
+/**
  * Estimated spend for a week, from the current month's spend so far.
  *
  * The snapshot has monthly spending only, so the week is month-to-date spend divided by the

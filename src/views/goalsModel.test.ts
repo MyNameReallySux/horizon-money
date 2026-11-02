@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SNAPSHOT_VERSION, type Goal, type Snapshot } from '../data/contract';
-import { estimateWeeklySpend, goalStatus, weeklyGoalProgress } from './goalsModel';
+import { estimateWeeklySpend, goalStatus, snapshotDate, weeklyGoalProgress } from './goalsModel';
 
 function snapshot(goals: Goal[]): Snapshot {
   return {
@@ -47,6 +47,22 @@ describe('estimateWeeklySpend', () => {
     expect(estimateWeeklySpend(snapshot([]), 'debt-paydown', '2030-01-10')).toBeNull();
     expect(estimateWeeklySpend(snapshot([]), 'category:Nope', '2030-01-10')).toBeNull();
     expect(estimateWeeklySpend(snapshot([]), 'spending', '2030-02-10')).toBeNull();
+  });
+});
+
+describe('snapshotDate', () => {
+  it('paces by the snapshot date, not the wall clock', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2030-01-25T12:00:00Z'));
+    try {
+      const snap = snapshot([goal({ metric: 'category:Groceries', target: 100 })]);
+      expect(snapshotDate(snap)).toBe('2030-01-10');
+      const [row] = weeklyGoalProgress(snap, snapshotDate(snap));
+      expect(row?.actual).toBeCloseTo(70);
+      expect(row?.status).toBe('good');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

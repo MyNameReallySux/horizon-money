@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Snapshot } from '../data/contract';
-import { weeklyGoalProgress, type GoalProgress, type GoalStatus } from './goalsModel';
+import { snapshotDate, weeklyGoalProgress, type GoalProgress, type GoalStatus } from './goalsModel';
 import './goals.css';
 
 const usd = new Intl.NumberFormat('en-US', {
@@ -97,8 +97,7 @@ function GoalCard({ row }: { row: GoalProgress }) {
  */
 export function Goals({ snapshot }: { snapshot: Snapshot }) {
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
-  const today = new Date().toLocaleDateString('en-CA');
-  const rows = weeklyGoalProgress(snapshot, today);
+  const rows = weeklyGoalProgress(snapshot, snapshotDate(snapshot));
 
   return (
     <section aria-labelledby="goals-title">
