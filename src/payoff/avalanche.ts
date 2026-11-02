@@ -142,6 +142,9 @@ interface State {
  * Infeasible (`feasible: false`) when the budget is below the opening minimums, when a
  * month's payments do not exceed its interest while debt remains, or after
  * {@link MAX_MONTHS} months.
+ *
+ * Throws `RangeError` on a non-finite or negative budget, a debt with a non-finite balance,
+ * APR or minimum payment, a negative APR, or two debts sharing an id.
  */
 export function simulatePayoff(
   debts: Debt[],
@@ -150,6 +153,16 @@ export function simulatePayoff(
   strategy: PayoffStrategy = 'avalanche',
 ): PayoffPlan {
   addMonths(startMonth, 0);
+  if (!Number.isFinite(budget) || budget < 0) throw new RangeError(`Invalid budget ${budget}`);
+  for (const d of debts) {
+    if (![d.balance, d.apr, d.minPayment].every(Number.isFinite) || d.apr < 0) {
+      throw new RangeError(`Invalid debt "${d.id}"`);
+    }
+  }
+  // Payments and interest are keyed by id, so a repeated id would be counted twice.
+  if (new Set(debts.map((d) => d.id)).size !== debts.length) {
+    throw new RangeError('Duplicate debt id');
+  }
   const budgetC = cents(budget);
   const payoffMonth: Record<string, string | null> = {};
   const states: State[] = debts.map((d) => {

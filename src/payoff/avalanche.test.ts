@@ -272,3 +272,24 @@ describe('runScenarios', () => {
     expect(rows[1]?.feasible).toBe(true);
   });
 });
+
+describe('simulatePayoff input validation', () => {
+  it('rejects a non-finite or negative budget', () => {
+    expect(() => simulatePayoff([debt({})], Number.NaN, '2026-11')).toThrow(RangeError);
+    expect(() => simulatePayoff([debt({})], Number.POSITIVE_INFINITY, '2026-11')).toThrow(RangeError);
+    expect(() => simulatePayoff([debt({})], -1, '2026-11')).toThrow(RangeError);
+  });
+
+  it('rejects a debt with a non-finite field or a negative APR', () => {
+    expect(() => simulatePayoff([debt({ balance: Number.NaN })], 200, '2026-11')).toThrow(RangeError);
+    expect(() => simulatePayoff([debt({ apr: Number.NaN })], 200, '2026-11')).toThrow(RangeError);
+    expect(() => simulatePayoff([debt({ minPayment: Number.NaN })], 200, '2026-11')).toThrow(RangeError);
+    expect(() => simulatePayoff([debt({ apr: -1 })], 200, '2026-11')).toThrow(RangeError);
+  });
+
+  it('rejects duplicate debt ids', () => {
+    expect(() =>
+      simulatePayoff([debt({ id: 'x' }), debt({ id: 'x', name: 'Card B' })], 400, '2026-11'),
+    ).toThrow('Duplicate debt id');
+  });
+});
