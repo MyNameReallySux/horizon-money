@@ -15,6 +15,10 @@ export interface PaystubEntry {
   /** PDF path relative to the paystubs folder (`<yyyy>/<name>.pdf`), null when not downloaded. */
   file: string | null;
   source: 'oasis';
+  /** ISO first day of the pay period, read from the PDF by `pnpm paystubs:periods`. */
+  periodStart?: string;
+  /** ISO last day of the pay period; places the stub on its true biweekly slot. */
+  periodEnd?: string;
 }
 
 /** The contents of `<dataDir>/paystubs/index.json`. */
@@ -41,7 +45,9 @@ function isPaystubEntry(x: unknown): x is PaystubEntry {
     typeof x.voucherNumber === 'string' &&
     x.voucherNumber !== '' &&
     (x.file === null || (typeof x.file === 'string' && FILE_PATTERN.test(x.file))) &&
-    x.source === 'oasis'
+    x.source === 'oasis' &&
+    (x.periodStart === undefined || isIsoDate(x.periodStart)) &&
+    (x.periodEnd === undefined || isIsoDate(x.periodEnd))
   );
 }
 
@@ -58,15 +64,20 @@ export function isPaystubIndex(x: unknown): x is PaystubIndex {
 
 /**
  * Merges freshly listed stubs into the existing ones, deduped by voucher number and sorted by
- * pay date. The incoming metadata wins, but a stub already downloaded keeps its file when the
- * incoming entry has none (a skipped or failed fetch must not forget a PDF on disk).
+ * pay date. The incoming metadata wins, but a stub already downloaded keeps its file and pay period
+ * when the incoming entry has none (a skipped or failed fetch must not forget a PDF on disk).
  */
 export function mergeIndex(existing: PaystubEntry[], incoming: PaystubEntry[]): PaystubEntry[] {
   const byVoucher = new Map<string, PaystubEntry>();
   for (const e of existing) byVoucher.set(e.voucherNumber, e);
   for (const e of incoming) {
     const prior = byVoucher.get(e.voucherNumber);
-    byVoucher.set(e.voucherNumber, { ...e, file: e.file ?? prior?.file ?? null });
+    const merged: PaystubEntry = { ...e, file: e.file ?? prior?.file ?? null };
+    const periodStart = e.periodStart ?? prior?.periodStart;
+    const periodEnd = e.periodEnd ?? prior?.periodEnd;
+    if (periodStart !== undefined) merged.periodStart = periodStart;
+    if (periodEnd !== undefined) merged.periodEnd = periodEnd;
+    byVoucher.set(e.voucherNumber, merged);
   }
   return [...byVoucher.values()].sort(
     (a, b) => a.payDate.localeCompare(b.payDate) || a.voucherNumber.localeCompare(b.voucherNumber),

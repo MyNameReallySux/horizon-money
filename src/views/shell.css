@@ -2,8 +2,9 @@
   display: flex;
   gap: 4px;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  box-shadow: inset 0 -1px 0 var(--border);
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .tab {
@@ -11,7 +12,6 @@
   background: none;
   border: 0;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
   padding: 8px 14px;
   font: inherit;
   color: var(--muted);
