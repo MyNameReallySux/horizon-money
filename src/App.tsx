@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { Snapshot } from './data/contract';
+import { countMissed } from './data/missed';
 import { loadSnapshot, type LoadedSnapshot } from './data/loadSnapshot';
 
 const usd = new Intl.NumberFormat('en-US', {
@@ -34,9 +35,7 @@ function computeKpis(snapshot: Snapshot): Kpi[] {
     .filter((a) => a.kind === 'credit' && a.balance < 0)
     .reduce((sum, a) => sum + a.balance, 0);
   const today = new Date().toLocaleDateString('en-CA');
-  const missed = snapshot.paychecks.filter(
-    (p) => p.receivedDate === null && p.expectedDate < today,
-  ).length;
+  const missed = countMissed(snapshot.paychecks, today);
   return [
     { label: 'Net cash flow', value: usd.format(net), hint: latest?.month ?? 'no data' },
     { label: 'Card debt', value: usd.format(cardDebt), hint: 'credit balances owed' },

@@ -184,8 +184,10 @@ export function buildPaycheckLedger(
   today: string,
 ): Paycheck[] {
   const anchor = dayNumber(schedule.anchorDate);
-  const end = dayNumber(today);
+  const todayDay = dayNumber(today);
   const stubItems: Item[] = stubs.map((s) => ({ day: dayNumber(s.date), amount: s.netPay, slot: undefined }));
+  // A stub can be listed before its pay date; its slot must exist or it would read as off-cycle.
+  const end = Math.max(todayDay, ...stubItems.map((s) => s.day));
   const depositItems: Item[] = deposits.map((d) => ({ day: dayNumber(d.date), amount: d.amount, slot: undefined }));
   const all = [...stubItems, ...depositItems];
   const start = all.length > 0 ? Math.min(...all.map((i) => i.day)) - SLOT_WINDOW_DAYS : anchor;
@@ -197,9 +199,10 @@ export function buildPaycheckLedger(
   const stubAt = assignSlots(stubItems, slots);
   const depositAt = assignSlots(depositItems, slots);
 
-  const out: Paycheck[] = slots.map((slot) => {
+  const out: Paycheck[] = slots.flatMap((slot) => {
     const stub = stubAt.get(slot);
     const deposit = depositAt.get(slot);
+    if (slot > todayDay && !stub && !deposit) return [];
     const paidDay = deposit?.day ?? stub?.day;
     const row: Paycheck = {
       expectedDate: isoOf(slot),
@@ -210,7 +213,7 @@ export function buildPaycheckLedger(
       stubNetPay: stub ? cents(stub.amount) : null,
     };
     if (paidDay !== undefined) row.daysLate = paidDay - slot;
-    return row;
+    return [row];
   });
 
   const freeDeposits = depositItems.filter((d) => d.slot === undefined);

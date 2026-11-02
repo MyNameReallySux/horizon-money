@@ -62,7 +62,7 @@ function findString(node: unknown, key: string, depth = 0): string | undefined {
 /** Records session identifiers from the portal's own requests; nothing captured is logged or stored. */
 function watchRequests(context: BrowserContext, capture: Capture): void {
   context.on('request', (request) => {
-    if (request.method() !== 'POST' || !request.url().startsWith(ORIGIN)) return;
+    if (request.method() !== 'POST' || new URL(request.url()).origin !== ORIGIN) return;
     let body: unknown;
     try {
       body = JSON.parse(request.postData() ?? '');
@@ -107,20 +107,28 @@ async function waitForSession(page: Page, capture: Capture): Promise<Session> {
 type PortalReply = { ok: true; json: unknown } | { ok: false; status: number };
 
 /** POSTs from inside the page so cookies and origin match the portal's own calls. */
-function postJson(page: Page, path: string, body: unknown): Promise<PortalReply> {
-  return page.evaluate(
-    async ({ path, body }) => {
-      const res = await fetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        credentials: 'same-origin',
-      });
-      if (!res.ok) return { ok: false as const, status: res.status };
-      return { ok: true as const, json: (await res.json()) as unknown };
-    },
-    { path, body },
-  );
+async function postJson(page: Page, path: string, body: unknown): Promise<PortalReply> {
+  // The session token must only ever be sent to the portal, never to wherever the page drifted.
+  if (new URL(page.url()).origin !== ORIGIN) return { ok: false, status: 0 };
+  return page
+    .evaluate(
+      async ({ url, body }) => {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          credentials: 'same-origin',
+        });
+        if (!res.ok) return { ok: false as const, status: res.status };
+        try {
+          return { ok: true as const, json: (await res.json()) as unknown };
+        } catch {
+          return { ok: false as const, status: res.status };
+        }
+      },
+      { url: `${ORIGIN}${path}`, body },
+    )
+    .catch((): PortalReply => ({ ok: false, status: 0 }));
 }
 
 function writeAtomic(target: string, data: string | Uint8Array): void {
@@ -164,9 +172,13 @@ async function main(): Promise<void> {
   const stubsDir = join(dir, 'paystubs');
   const indexPath = join(stubsDir, 'index.json');
 
+  const profileDir = join(dir, 'browser', 'oasis');
+  // The profile holds portal login cookies. The mode applies on POSIX only; Windows relies on
+  // the user-profile ACL to keep other accounts out.
+  mkdirSync(profileDir, { recursive: true, mode: 0o700 });
   const chromePath = process.env.HORIZON_CHROME_PATH?.trim();
   const context = await chromium
-    .launchPersistentContext(join(dir, 'browser', 'oasis'), {
+    .launchPersistentContext(profileDir, {
       ...(chromePath ? { executablePath: chromePath } : { channel: 'chrome' }),
       headless: false,
       acceptDownloads: true,
@@ -238,7 +250,13 @@ async function main(): Promise<void> {
           incoming.push({ ...stub, file: present ? rel : null });
           continue;
         }
-        writeAtomic(target, pdf);
+        try {
+          writeAtomic(target, pdf);
+        } catch {
+          counts.failed++;
+          incoming.push({ ...stub, file: present ? rel : null });
+          continue;
+        }
         counts.downloaded++;
         incoming.push({ ...stub, file: rel });
       }

@@ -126,6 +126,11 @@ describe('buildPaycheckLedger', () => {
     expect(off[0]).toMatchObject({ expectedAmount: 900, receivedAmount: 880 });
   });
 
+  it('assigns a stub listed before its pay date to its future slot', () => {
+    const rows = buildPaycheckLedger(schedule, [{ date: '2026-09-18', netPay: 3200 }], [], '2026-09-14');
+    expect(rows.map((r) => [r.expectedDate, r.status])).toEqual([['2026-09-18', 'stub-only']]);
+  });
+
   it('excludes future slots', () => {
     expect(buildPaycheckLedger(schedule, [], [], '2026-09-17').map((r) => r.status)).toEqual(['missed']);
   });

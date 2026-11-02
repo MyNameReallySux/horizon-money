@@ -78,9 +78,19 @@ describe('stubFileName', () => {
     expect(stubFileName('2026-09-04', 'V-001')).toBe('2026/2026-09-04_V-001.pdf');
   });
 
-  it('strips path characters from the voucher', () => {
-    expect(stubFileName('2026-09-04', '../x/y')).toBe('2026/2026-09-04_xy.pdf');
-    expect(stubFileName('2026-09-04', '///')).toBe('2026/2026-09-04_stub.pdf');
+  it('encodes path characters so the voucher cannot escape the folder', () => {
+    expect(stubFileName('2026-09-04', '../x/y')).toBe('2026/2026-09-04__2E_2E_2Fx_2Fy.pdf');
+    expect(stubFileName('2026-09-04', '')).toBe('2026/2026-09-04__none.pdf');
+  });
+
+  it('keeps distinct vouchers on distinct files', () => {
+    const names = ['AB/1', 'AB1', 'AB_1', 'AB_2F1', 'AB-1'].map((v) => stubFileName('2026-09-04', v));
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('produces names the index guard accepts', () => {
+    const file = stubFileName('2026-09-04', 'a/b cé');
+    expect(isPaystubIndex({ version: 1, updatedAt: 'x', stubs: [entry({ file })] })).toBe(true);
   });
 });
 
@@ -112,6 +122,9 @@ describe('isPaystubIndex', () => {
     ['wrong version', { ...good, version: 2 }],
     ['missing stubs', { ...good, stubs: undefined }],
     ['bad date', { ...good, stubs: [entry({ payDate: '2026-13-01' })] }],
+    ['parent-relative file', { ...good, stubs: [entry({ file: '../x.pdf' })] }],
+    ['drive-absolute file', { ...good, stubs: [entry({ file: 'C:/x.pdf' })] }],
+    ['posix-absolute file', { ...good, stubs: [entry({ file: '/etc/x.pdf' })] }],
     ['empty voucher', { ...good, stubs: [entry({ voucherNumber: '' })] }],
     ['wrong source', { ...good, stubs: [{ ...entry({}), source: 'other' }] }],
     ['not an object', null],

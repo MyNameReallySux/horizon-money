@@ -28,6 +28,9 @@ export interface PaystubIndex {
 const isRecord = (x: unknown): x is Record<string, unknown> =>
   typeof x === 'object' && x !== null && !Array.isArray(x);
 
+/** `<yyyy>/<name>.pdf` only, so an edited index cannot point a reader outside the paystubs folder. */
+const FILE_PATTERN = /^\d{4}\/[A-Za-z0-9_.-]+\.pdf$/;
+
 function isPaystubEntry(x: unknown): x is PaystubEntry {
   return (
     isRecord(x) &&
@@ -37,7 +40,7 @@ function isPaystubEntry(x: unknown): x is PaystubEntry {
     typeof x.checkNumber === 'string' &&
     typeof x.voucherNumber === 'string' &&
     x.voucherNumber !== '' &&
-    (x.file === null || typeof x.file === 'string') &&
+    (x.file === null || (typeof x.file === 'string' && FILE_PATTERN.test(x.file))) &&
     x.source === 'oasis'
   );
 }
@@ -71,10 +74,16 @@ export function mergeIndex(existing: PaystubEntry[], incoming: PaystubEntry[]): 
 }
 
 /**
- * Target path of a stub's PDF relative to the paystubs folder. The voucher is stripped to a
- * filename-safe form because it comes from a remote response and ends up in a path.
+ * Target path of a stub's PDF relative to the paystubs folder. The voucher comes from a remote
+ * response and ends up in a path, so every character outside `[A-Za-z0-9-]` (the underscore
+ * included) becomes `_XX` per UTF-8 byte. That keeps distinct vouchers on distinct files, which
+ * stripping would not: `AB/1` and `AB1` must not share a PDF.
  */
 export function stubFileName(payDate: string, voucherNumber: string): string {
-  const safe = voucherNumber.replace(/[^A-Za-z0-9_-]/g, '');
-  return `${payDate.slice(0, 4)}/${payDate}_${safe === '' ? 'stub' : safe}.pdf`;
+  const safe = Array.from(voucherNumber, (ch) =>
+    /[A-Za-z0-9-]/.test(ch)
+      ? ch
+      : Array.from(new TextEncoder().encode(ch), (b) => `_${b.toString(16).toUpperCase().padStart(2, '0')}`).join(''),
+  ).join('');
+  return `${payDate.slice(0, 4)}/${payDate}_${safe === '' ? '_none' : safe}.pdf`;
 }
