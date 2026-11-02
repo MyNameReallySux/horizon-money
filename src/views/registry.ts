@@ -3,6 +3,7 @@ import type { Snapshot } from '../data/contract';
 import { Debt } from './Debt';
 import { Goals } from './Goals';
 import { Overview } from './Overview';
+import { Trends } from './Trends';
 
 export interface ViewProps {
   snapshot: Snapshot;
@@ -25,6 +26,7 @@ export const views: readonly ViewDefinition[] = [
   { id: 'overview', label: 'Overview', component: Overview },
   { id: 'debt', label: 'Debt', component: Debt },
   { id: 'goals', label: 'Goals', component: Goals },
+  { id: 'trends', label: 'Trends', component: Trends },
 ];
 
 /**
