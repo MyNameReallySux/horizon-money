@@ -5,23 +5,29 @@ import { cents, isFiniteNumber, isRecord, type Warn } from './raw.ts';
 /** Maps Monarch's frequency strings onto {@link RecurringFrequency}; null for anything else. */
 export function mapFrequency(value: unknown): RecurringFrequency | null {
   if (typeof value !== 'string') return null;
-  switch (value.toLowerCase().replace(/[^a-z]/g, '')) {
+  const key = value.toLowerCase().replace(/[^a-z]/g, '');
+  switch (key) {
     case 'weekly':
       return 'weekly';
     case 'biweekly':
     case 'everyotherweek':
     case 'everytwoweeks':
       return 'biweekly';
+    case 'fortnightly':
+      return 'biweekly';
     case 'monthly':
       return 'monthly';
     case 'quarterly':
       return 'quarterly';
+    case 'semiyearly':
+      return 'semiyearly';
     case 'yearly':
     case 'annually':
     case 'annual':
       return 'yearly';
     default:
-      return null;
+      // Monarch suffixes the anchor days (semimonthly_start_mid, semimonthly_mid_end).
+      return key.startsWith('semimonthly') ? 'semimonthly' : null;
   }
 }
 
