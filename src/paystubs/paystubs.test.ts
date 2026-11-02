@@ -19,9 +19,10 @@ describe('parseYears', () => {
     expect(parseYears(yearsResponse)).toEqual(['2026', '2025']);
   });
 
-  it('is empty for a payload of the wrong shape', () => {
-    expect(parseYears(null)).toEqual([]);
-    expect(parseYears({ JSONOUT: {} })).toEqual([]);
+  it('is null for a payload without a year list, but empty for an empty list', () => {
+    expect(parseYears(null)).toBeNull();
+    expect(parseYears({ JSONOUT: { responseProfile: { status: 'error' } } })).toBeNull();
+    expect(parseYears({ JSONOUT: { responseBody: { payStubYears: [] } } })).toEqual([]);
   });
 });
 
@@ -50,12 +51,26 @@ describe('parseAmount', () => {
 
 describe('parseStubs', () => {
   it('maps valid rows and counts the unusable ones', () => {
-    const { stubs, skipped } = parseStubs(stubsResponse);
+    const { stubs, skipped, recognised } = parseStubs(stubsResponse);
     expect(skipped).toBe(2);
+    expect(recognised).toBe(true);
     expect(stubs).toEqual([
       { payDate: '2026-09-04', netPay: 3200.5, checkNumber: '1001', voucherNumber: 'V-001', file: null, source: 'oasis' },
       { payDate: '2026-09-18', netPay: 3200, checkNumber: '1002', voucherNumber: 'V-002', file: null, source: 'oasis' },
     ]);
+  });
+});
+
+describe('parseStubs recognition', () => {
+  it('flags an error envelope as unrecognised rather than empty', () => {
+    const body = { JSONOUT: { responseProfile: { status: 'error' }, responseBody: { message: 'session expired' } } };
+    expect(parseStubs(body)).toEqual({ stubs: [], skipped: 0, recognised: false });
+    expect(parseStubs({})).toMatchObject({ recognised: false });
+  });
+
+  it('keeps an empty payStubInfo list as a recognised year with no stubs', () => {
+    const body = { JSONOUT: { responseBody: { payStubInfo: [] } } };
+    expect(parseStubs(body)).toEqual({ stubs: [], skipped: 0, recognised: true });
   });
 });
 

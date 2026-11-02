@@ -83,13 +83,38 @@ function watchRequests(context: BrowserContext, capture: Capture): void {
 const isComplete = (c: Capture): c is Session =>
   c.token !== undefined && c.employeeId !== undefined && c.clientId !== undefined;
 
+const onPayStubsPage = (rawUrl: string): boolean => {
+  const url = new URL(rawUrl);
+  return url.origin === ORIGIN && url.pathname.includes('payStubs');
+};
+
+/**
+ * Drops identifiers captured before the page left the pay stubs path. An expired session fires
+ * its requests and is then redirected to the login page, so what was captured by then is stale.
+ */
+function discardOnLeave(page: Page, capture: Capture): void {
+  page.on('framenavigated', (frame) => {
+    if (frame !== page.mainFrame() || onPayStubsPage(frame.url())) return;
+    delete capture.token;
+    delete capture.employeeId;
+    delete capture.clientId;
+  });
+}
+
 async function waitForSession(page: Page, capture: Capture): Promise<Session> {
   const started = Date.now();
   const deadline = started + LOGIN_WAIT_MS;
   let announced = false;
   let lastNudge = Date.now();
   while (Date.now() < deadline) {
-    if (isComplete(capture)) return capture;
+    if (
+      isComplete(capture) &&
+      onPayStubsPage(page.url()) &&
+      (await page.locator('text=ACTIONS').first().isVisible().catch(() => false)) &&
+      isComplete(capture)
+    ) {
+      return { ...capture };
+    }
     if (!announced && Date.now() - started > 5_000) {
       console.log('Not logged in yet: log in (including MFA) in the browser window; waiting up to 10 minutes.');
       announced = true;
@@ -193,6 +218,7 @@ async function main(): Promise<void> {
     const capture: Capture = {};
     watchRequests(context, capture);
     const page = context.pages()[0] ?? (await context.newPage());
+    discardOnLeave(page, capture);
     await page.goto(`${ORIGIN}${PAGE_PATH}`).catch(() => {});
     const session = await waitForSession(page, capture);
 
@@ -202,7 +228,9 @@ async function main(): Promise<void> {
         JSONIN: { sessionToken: session.token, payStubYears: true, employeeId: session.employeeId },
       });
       if (!reply.ok) throw new Error(`listing years failed (HTTP ${reply.status})`);
-      selected = parseYears(reply.json);
+      const listed = parseYears(reply.json);
+      if (listed === null) throw new Error('listing years returned no year list');
+      selected = listed;
     } else if (selected.length === 0) {
       selected = [String(new Date().getFullYear())];
     }
@@ -219,7 +247,12 @@ async function main(): Promise<void> {
         console.warn(`warning: listing ${year} failed (HTTP ${reply.status})`);
         continue;
       }
-      const { stubs, skipped } = parseStubs(reply.json);
+      const { stubs, skipped, recognised } = parseStubs(reply.json);
+      if (!recognised) {
+        counts.failed++;
+        console.warn(`warning: listing ${year} returned no stub list`);
+        continue;
+      }
       counts.listed += stubs.length;
       counts.failed += skipped;
 

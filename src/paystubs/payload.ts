@@ -11,10 +11,12 @@ export function unwrapPortal(payload: unknown): unknown {
   return isRecord(out.responseBody) ? out.responseBody : out;
 }
 
-/** Reads the year list from a `payStubYears` response; malformed rows are dropped. Newest first. */
-export function parseYears(payload: unknown): string[] {
+/** Reads the year list from a `payStubYears` response; malformed rows are dropped. Newest first.
+ * Null when the body has no `payStubYears` array, which is how a portal error envelope looks. */
+export function parseYears(payload: unknown): string[] | null {
   const body = unwrapPortal(payload);
-  const rows = isRecord(body) && Array.isArray(body.payStubYears) ? body.payStubYears : [];
+  if (!isRecord(body) || !Array.isArray(body.payStubYears)) return null;
+  const rows: unknown[] = body.payStubYears;
   const years = rows
     .map((r) => (isRecord(r) ? r.year : undefined))
     .filter((y): y is string => typeof y === 'string' && /^\d{4}$/.test(y));
@@ -46,10 +48,13 @@ export function parseAmount(value: unknown): number | null {
 /**
  * Reads the stub list from a `payStubInfo` response. Rows without a usable date, amount or
  * voucher are counted in `skipped` rather than thrown, so one odd row does not lose a year.
+ * `recognised` is false when the body has no `payStubInfo` array (a portal error envelope), which
+ * must not be mistaken for a year with no stubs.
  */
-export function parseStubs(payload: unknown): { stubs: PaystubEntry[]; skipped: number } {
+export function parseStubs(payload: unknown): { stubs: PaystubEntry[]; skipped: number; recognised: boolean } {
   const body = unwrapPortal(payload);
-  const rows = isRecord(body) && Array.isArray(body.payStubInfo) ? body.payStubInfo : [];
+  if (!isRecord(body) || !Array.isArray(body.payStubInfo)) return { stubs: [], skipped: 0, recognised: false };
+  const rows: unknown[] = body.payStubInfo;
   const stubs: PaystubEntry[] = [];
   let skipped = 0;
   for (const r of rows) {
@@ -63,7 +68,7 @@ export function parseStubs(payload: unknown): { stubs: PaystubEntry[]; skipped: 
     const check = typeof r.checkNumber === 'string' ? r.checkNumber.trim() : '';
     stubs.push({ payDate, netPay, checkNumber: check, voucherNumber: voucher, file: null, source: 'oasis' });
   }
-  return { stubs, skipped };
+  return { stubs, skipped, recognised: true };
 }
 
 /**
