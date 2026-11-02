@@ -1,0 +1,42 @@
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.trends-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trends-table th,
+.trends-table td {
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.trends-table th:first-child,
+.trends-table td:first-child {
+  text-align: left;
+}
+
+.trends-table th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.trends-pos {
+  color: var(--income);
+}
+
+.trends-neg {
+  color: var(--expense);
+}
+
+.trends-empty {
+  color: var(--muted);
+}
