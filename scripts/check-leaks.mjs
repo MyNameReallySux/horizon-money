@@ -26,6 +26,7 @@ const blockedPaths = [
   { re: /(^|\/)snapshot\.json$/, why: 'live snapshot file' },
   { re: /(^|\/)raw\//, why: 'raw monarch responses', allow: /^src\/fixtures\/raw\// },
   { re: /(^|\/)manual\.json$/, why: 'live manual entry file' },
+  { re: /(^|\/)targets[^/]*\.json$/i, why: 'live targets plan file', allow: /^docs\/targets\.example\.json$/ },
   { re: /(^|\/)paystubs\//, why: 'downloaded pay stubs', allow: /^(src\/(fixtures\/)?|scripts\/)paystubs\// },
   { re: /(^|\/)paystubs\/index\.json$/, why: 'pay stub index' },
   { re: /(^|\/)browser\//, why: 'browser profile holding a portal session' },
