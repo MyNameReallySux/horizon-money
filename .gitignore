@@ -9,6 +9,7 @@ manual.json
 browser/
 paystubs/
 !/src/paystubs/
+!/scripts/paystubs/
 !/src/fixtures/paystubs/
 *.snapshot.json
 !src/fixtures/*.snapshot.json
