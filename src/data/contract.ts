@@ -49,8 +49,18 @@ export interface CategorySpend {
   amount: number;
 }
 
-/** How often a recurring item repeats. */
-export type RecurringFrequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly';
+/**
+ * How often a recurring item repeats. `semimonthly` is twice a month (24 a year) and
+ * `semiyearly` twice a year; `biweekly` is every two weeks (26 a year).
+ */
+export type RecurringFrequency =
+  | 'weekly'
+  | 'biweekly'
+  | 'semimonthly'
+  | 'monthly'
+  | 'quarterly'
+  | 'semiyearly'
+  | 'yearly';
 
 /** A recurring bill, subscription or income stream. */
 export interface RecurringItem {
