@@ -78,6 +78,8 @@ export interface Paycheck {
   status?: PaycheckStatus;
   /** Net pay on the matching pay stub; null when no stub matched. Absent without imported stubs. */
   stubNetPay?: number | null;
+  /** Days the payment (deposit, else stub) came after its slot; negative when early. Absent for misses and off-cycle entries. */
+  daysLate?: number;
 }
 
 /** The span a goal is measured over. */

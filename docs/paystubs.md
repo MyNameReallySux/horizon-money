@@ -49,17 +49,23 @@ is not on disk) and `source`. Runs merge into it; `src/paystubs/index.ts` has th
 ## Paycheck ledger
 
 With an index present, `paychecks` in the snapshot comes from stubs plus Monarch deposits
-(`raw/paychecks.json`). The schedule is `paySchedule` from `manual.json` when set; otherwise it is
-derived as biweekly, anchored on the latest stub, expecting the median stub net pay. Each
-expected date (every 14 days, through today) gets a `status`:
+(`raw/paychecks.json`). The schedule is `paySchedule` from `manual.json` when set. Otherwise it is
+derived as biweekly: the phase is fitted on the most recent run of stubs spaced 10-18 days apart
+(at least 3, else all stubs, with a warning), anchored at the slot at or before the latest stub,
+expecting the median stub net pay. The 14-day grid projects back over the whole history, so an
+older irregular stretch shows up as late, missed or off-cycle.
+
+Stubs and deposits are assigned independently to their nearest slot when within 6 days, closest
+first, one per slot. `daysLate` is the deposit (else stub) date minus the slot date; negative is
+early. Each slot, through today, gets a `status`:
 
 | Status | Meaning |
 |---|---|
-| `paid` | A stub and a deposit each within 3 days of the date. |
-| `stub-only` | A stub but no deposit, e.g. not deposited yet or back pay owed. |
+| `paid` | A stub and a deposit both assigned to the slot. |
+| `stub-only` | A stub but no deposit. Not an error: some deposits land in accounts Monarch cannot see. |
 | `deposit-only` | A deposit but no stub. |
 | `missed` | Neither. |
-| `off-cycle` | A stub or deposit that fits no expected date (a bonus, say); a stub and deposit within 3 days of each other share one entry. Its `expectedDate` and `expectedAmount` are its own. |
+| `off-cycle` | A stub or deposit with no slot within 6 days or that lost its slot to a closer one (a bonus, say); a stub and deposit within 3 days of each other share one entry. Its `expectedDate` and `expectedAmount` are its own. |
 
 `stubNetPay` carries the matched stub's net pay. Without an index nothing changes and these
 fields are absent.
