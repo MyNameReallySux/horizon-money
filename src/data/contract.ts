@@ -63,6 +63,9 @@ export interface RecurringItem {
   nextDate: string;
 }
 
+/** How an expected paycheck reconciles pay stubs against bank deposits; only set when stubs are imported. */
+export type PaycheckStatus = 'paid' | 'stub-only' | 'deposit-only' | 'missed' | 'off-cycle';
+
 /** An expected paycheck and, once it lands, what actually arrived. */
 export interface Paycheck {
   /** ISO date `YYYY-MM-DD`. */
@@ -71,6 +74,10 @@ export interface Paycheck {
   /** Null when the paycheck has not arrived (a miss, once `expectedDate` has passed). */
   receivedDate: string | null;
   receivedAmount: number | null;
+  /** Reconciliation result; absent when no pay stubs were imported. */
+  status?: PaycheckStatus;
+  /** Net pay on the matching pay stub; null when no stub matched. Absent without imported stubs. */
+  stubNetPay?: number | null;
 }
 
 /** The span a goal is measured over. */
