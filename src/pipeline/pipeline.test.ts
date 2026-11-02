@@ -148,7 +148,7 @@ describe('mapRecurring', () => {
     ['semimonthly_mid_end', 'semimonthly'],
     ['semiyearly', 'semiyearly'],
     ['fortnightly', 'biweekly'],
-    ['every_fortnight', null],
+    ['whenever_it_feels_like', null],
     [undefined, null],
   ])('maps frequency %s to %s', (input, expected) => {
     expect(mapFrequency(input)).toBe(expected);
