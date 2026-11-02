@@ -46,13 +46,34 @@ in `<dataDir>/manual.json`. See [manual.example.json](./manual.example.json).
   `anchorDate` is any known pay date; expected paychecks fall every 14 days from it.
 - A manual account id must not equal a Monarch account id; the assembler refuses to run if it does.
 
+## targets.json
+
+Optional. The weekly, monthly and yearly targets of a personal plan, loaded into `goals` after
+the Monarch goals. See [targets.example.json](./targets.example.json). A missing file is not a
+warning.
+
+- `version` (must be 1; any other version rejects the whole file with a warning), optional
+  `effective: { from, to }` (ISO dates, `from` not after `to`), and `targets[]`. When `effective` is
+  present and the snapshot date (the local date of the run) falls outside it, no targets load and
+  one warning says so.
+- Target: `id` (unique), `name`, `period` (`week`, `month` or `year`), `metric`, `target`
+  (positive), `direction` (`max` is a cap, `min` is a floor), optional `stretch` (number, at least 0, and no higher than `target` for `max`, no lower for `min`) and
+  `by` (ISO date, for yearly goals).
+- `metric` keys the UI knows: `spending` (total), `category:<name>` and `group:<name>` (spend
+  caps), `debt-paydown` (dollars to debts), `card-balance` (max total card balance), `interest`
+  (max monthly interest), `emergency-fund` (savings target), `paychecks-missed` (max count).
+- An invalid entry is dropped with one warning (by position, never its content); the rest load.
+  Within the file the first of two entries sharing an id wins. A target whose id matches a
+  Monarch goal replaces that goal (the file is the hand-written plan), with a warning.
+- Like `manual.json`, the real file stays in the data dir; `.gitignore` and the leak guard block it.
+
 ## Assemble
 
 ```bash
 pnpm snapshot:assemble
 ```
 
-Reads `raw/` and `manual.json`, validates the result with `isSnapshot`, and writes
+Reads `raw/`, `manual.json` and `targets.json`, validates the result with `isSnapshot`, and writes
 `<dataDir>/snapshot.json` atomically (temp file, then rename). It prints one summary line of
 counts, plus warnings, and never prints names or amounts. Exit code 1 means nothing was written.
 

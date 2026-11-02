@@ -1,5 +1,5 @@
 /**
- * Assembles `<dataDir>/snapshot.json` from `<dataDir>/raw/*.json` and `<dataDir>/manual.json`.
+ * Assembles `<dataDir>/snapshot.json` from `<dataDir>/raw/*.json`, `<dataDir>/manual.json` and `<dataDir>/targets.json`.
  *
  * Run with `pnpm snapshot:assemble`. Output is counts only: the data dir holds personal
  * data and this log may end up in a chat transcript.
@@ -40,6 +40,7 @@ function main(): void {
     throw new Error(`raw/accounts.json not found in the data dir (resolved via ${via}); run the refresh-snapshot skill first`);
   }
   const manualPath = join(dir, 'manual.json');
+  const targetsPath = join(dir, 'targets.json');
   const paystubsPath = join(dir, 'paystubs', 'index.json');
   const input: RawInputs = {
     accounts,
@@ -50,6 +51,7 @@ function main(): void {
     goals: raw('goals.json'),
     paychecks: raw('paychecks.json'),
     manual: existsSync(manualPath) ? readJson(manualPath, false) : undefined,
+    targets: existsSync(targetsPath) ? readJson(targetsPath, false) : undefined,
     paystubs: existsSync(paystubsPath) ? readJson(paystubsPath, false) : undefined,
   };
 
