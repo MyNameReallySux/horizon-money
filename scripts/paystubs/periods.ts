@@ -12,13 +12,15 @@ import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { PAYSTUB_INDEX_VERSION, isPaystubIndex, type PaystubEntry } from '../../src/paystubs/index.ts';
+import { linesFromTextItems, type TextItem } from '../../src/paystubs/pdfText.ts';
 import { parsePayPeriod } from '../../src/paystubs/period.ts';
 import { resolveDataDir } from '../../src/server/resolveDataDir.ts';
 
 const USAGE = `Usage: pnpm paystubs:periods [options]
 
 Options:
-  --probe  Print the first PDF's lines that mention period, pay, begin, end, from, to or date,
+  --probe  Print the first PDF's lines that mention period, pay, begin, end, from, to or date (and the
+           line after each),
            with every digit shown as # and every word outside a small label vocabulary shown
            as x. Nothing is read into the index in this mode.
   --help   Show this message.
@@ -29,6 +31,7 @@ const PROBE_LINE = /period|pay|begin|end|from|to|date/i;
 const LABEL_WORDS = new Set([
   'pay', 'period', 'beginning', 'begin', 'start', 'starting', 'ending', 'end', 'from', 'to',
   'through', 'thru', 'date', 'check', 'of', 'the', 'for', 'week', 'weekly', 'biweekly',
+  'employee', 'id', 'name', 'no', 'start',
 ]);
 
 /** Text of the PDF, one string per line. */
@@ -39,16 +42,7 @@ async function extractLines(path: string): Promise<string[]> {
     const doc = await task.promise;
     for (let n = 1; n <= doc.numPages; n++) {
       const content = await (await doc.getPage(n)).getTextContent();
-      let line = '';
-      for (const item of content.items) {
-        if (!('str' in item)) continue;
-        line += item.str;
-        if (item.hasEOL) {
-          lines.push(line);
-          line = '';
-        }
-      }
-      if (line !== '') lines.push(line);
+      lines.push(...linesFromTextItems(content.items.filter((item): item is TextItem & typeof item => 'str' in item)));
     }
   } finally {
     await task.destroy();
@@ -56,8 +50,12 @@ async function extractLines(path: string): Promise<string[]> {
   return lines;
 }
 
+/** Letters the PDF emitted one per item can still arrive spaced out; rejoin them before masking. */
+const collapseSplitLetters = (line: string): string =>
+  line.replace(/(?<![A-Za-z])[A-Za-z](?: [A-Za-z](?![A-Za-z]))+/g, (run) => run.replace(/ /g, ''));
+
 const mask = (line: string): string =>
-  line
+  collapseSplitLetters(line)
     .replace(/\d/g, '#')
     .replace(/[A-Za-z]+/g, (w) => (LABEL_WORDS.has(w.toLowerCase()) ? w : 'x'.repeat(w.length)));
 
@@ -91,7 +89,9 @@ async function main(): Promise<void> {
   if (values.probe) {
     const first = parsed.stubs.find((s) => s.file !== null && existsSync(join(stubsDir, s.file)));
     if (!first?.file) throw new Error('no downloaded pay stub PDF to probe');
-    const lines = (await extractLines(join(stubsDir, first.file))).filter((l) => PROBE_LINE.test(l));
+    const all = await extractLines(join(stubsDir, first.file));
+    // The line after a match is shown too: a header row's values sit there, and masking hides them.
+    const lines = all.filter((l, i) => PROBE_LINE.test(l) || PROBE_LINE.test(all[i - 1] ?? ''));
     console.log(`masked probe of 1 pdf (digits are #, unknown words are x): ${lines.length} matching lines`);
     for (const line of lines) console.log(mask(line.trim()));
     return;

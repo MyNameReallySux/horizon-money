@@ -53,7 +53,10 @@ is not on disk) and `source`. Runs merge into it; `src/paystubs/index.ts` has th
 `periodEnd` onto that stub's entry in `index.json`. **Dates are the only thing stored**: the PDF
 text is parsed in memory and dropped, and the run prints counts only (`N stubs, K periods found,
 M not found`). `pnpm paystubs:download` keeps a stub's known period when it re-lists it.
-`src/paystubs/period.ts` documents the accepted label and date shapes.
+`src/paystubs/period.ts` documents the accepted label and date shapes, among them the stub's
+header-then-values table (`Check Date | Period Start | Period End`, dates as `MM-DD-YYYY`).
+The PDF emits some text one character per item, so `src/paystubs/pdfText.ts` rebuilds lines
+from item positions first.
 
 `pnpm paystubs:periods --probe` is for when periods are not found: it prints, for the first
 downloaded PDF only, the text lines that mention period, pay, begin, end, from, to or date. The

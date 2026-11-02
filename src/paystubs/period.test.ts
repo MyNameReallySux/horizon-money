@@ -19,6 +19,29 @@ describe('parsePayPeriod', () => {
     expect(parsePayPeriod(`Employee   Gross  ${text}  Net`)).toEqual(JAN);
   });
 
+  describe('header-then-values table', () => {
+    const header = 'Employee | Id | Employee | Name | Check | Date | Period | Start | Period | End | Check | No';
+
+    it('maps dashed dates to labels by header order', () => {
+      const text = `${header}\n000000 | Fake | Person | 01-17-2025 | 01-01-2025 | 01-14-2025 | 0000`;
+      expect(parsePayPeriod(text)).toEqual(JAN);
+    });
+
+    it('follows the label order when the columns are arranged differently', () => {
+      const text = 'Period End | Check Date | Period Start\n01-14-2025 | 01-17-2025 | 01-01-2025';
+      expect(parsePayPeriod(text)).toEqual(JAN);
+    });
+
+    it('reads the table among other lines', () => {
+      const text = `Fake Company\n${header}\n\n123 | Fake Name | 02-07-2025 | 01-20-2025 | 02-02-2025 | 99\nGross 1,000.00`;
+      expect(parsePayPeriod(text)).toEqual({ start: '2025-01-20', end: '2025-02-02' });
+    });
+
+    it('gives up when the value row has a different number of dates than labels', () => {
+      expect(parsePayPeriod(`${header}\n000000 | Fake | Person | 01-01-2025 | 01-14-2025`)).toBeNull();
+    });
+  });
+
   it('does not mistake the check date after a period end for a range', () => {
     expect(parsePayPeriod('Period Ending: 01/14/2025 Check Date: 01/17/2025')).toBeNull();
   });
