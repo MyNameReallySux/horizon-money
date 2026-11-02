@@ -107,7 +107,11 @@ export function buildSnapshot(
     if (!isPaystubIndex(input.paystubs)) {
       throw new Error('paystubs/index.json: does not match the pay stub index format (see docs/paystubs.md)');
     }
-    const stubs = input.paystubs.stubs.map((s) => ({ date: s.payDate, netPay: s.netPay }));
+    const stubs = input.paystubs.stubs.map((s) => ({
+      date: s.payDate,
+      netPay: s.netPay,
+      ...(s.periodEnd === undefined ? {} : { periodEnd: s.periodEnd }),
+    }));
     const schedule = paySchedule ?? deriveSchedule(stubs, warn);
     if (input.paychecks === undefined) warn('paychecks.json is missing; paychecks are reconciled without deposits');
     const deposits = input.paychecks === undefined ? [] : mapDeposits(input.paychecks, warn);
