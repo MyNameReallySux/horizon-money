@@ -21,6 +21,9 @@ snapshot from a data directory you choose:
 Resolution order: `HORIZON_DATA_DIR`, then `./private/` if it exists, then
 `~/.horizon-money/`. Without a snapshot the app renders synthetic fixture data.
 
+To build a snapshot from Monarch, and to add accounts Monarch cannot sync, see
+[docs/data-pipeline.md](./docs/data-pipeline.md).
+
 Two guards keep data out of git:
 
 1. `.gitignore` ignores `private/`, `data/`, snapshots, and statement/paystub file types.

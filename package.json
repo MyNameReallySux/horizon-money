@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
+    "snapshot:assemble": "node scripts/snapshot/assemble.ts",
     "check:leaks": "node scripts/check-leaks.mjs",
     "prepare": "git config core.hooksPath .githooks || exit 0"
   },

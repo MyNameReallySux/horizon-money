@@ -24,6 +24,8 @@ const blockedPaths = [
   { re: /\.(pdf|csv|ofx|qfx)$/i, why: 'statement/paystub file type' },
   { re: /(^|\/)\.env(\.|$)(?!example)/, why: 'env file' },
   { re: /(^|\/)snapshot\.json$/, why: 'live snapshot file' },
+  { re: /(^|\/)raw\//, why: 'raw monarch responses', allow: /^src\/fixtures\/raw\// },
+  { re: /(^|\/)manual\.json$/, why: 'live manual entry file' },
   { re: /\.snapshot\.json$/, why: 'snapshot outside src/fixtures/', allow: /^src\/fixtures\// },
 ];
 
@@ -31,6 +33,7 @@ const blockedPaths = [
 const blockedContent = [
   { re: /\(\.\.\.\d{4}\)/, why: 'masked account suffix like (...1234)' },
   { re: /\*{4,}\d{4}/, why: 'masked account number like ****1234' },
+  { re: /"id"\s*:\s*"\d{15,}"/, why: 'real Monarch entity id' },
   { re: /"(merchant|account)_id"\s*:\s*"\d{15,}"/, why: 'real Monarch entity id' },
 ];
 

@@ -1,0 +1,10 @@
+{
+  "data": [
+    { "entity_name": "Rent", "entity_type": "category", "month": "2026-09-01", "amount": -1800 },
+    { "entity_name": "Groceries", "entity_type": "category", "month": "2026-09-01", "amount": -650.1 },
+    { "entity_name": "Paychecks", "entity_type": "category", "month": "2026-09-01", "amount": 6400 },
+    { "entity_name": "Transfer", "entity_type": "category", "month": "2026-09-01", "amount": -1000 },
+    { "entity_name": "Mystery", "entity_type": "category", "month": "2026-09-01", "amount": -5 },
+    { "entity_name": "Groceries", "entity_type": "category", "month": "2026-08-01", "amount": -600 }
+  ]
+}
