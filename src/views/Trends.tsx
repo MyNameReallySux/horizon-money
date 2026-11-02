@@ -23,11 +23,11 @@ const signedPercent = new Intl.NumberFormat('en-US', {
 
 export function Trends({ snapshot }: ViewProps) {
   const { points, rows, month, categories } = useMemo(() => {
-    const pts = buildTrendPoints(snapshot.cashflowMonthly);
-    const today = new Date().toLocaleDateString('en-CA');
+    const snapshotMonth = snapshot.generatedAt.slice(0, 7);
+    const pts = buildTrendPoints(snapshot.cashflowMonthly, snapshotMonth);
     const m = latestCompleteMonth(
       pts.map((p) => p.month),
-      today,
+      snapshot.generatedAt,
     );
     return {
       points: pts,

@@ -1,12 +1,15 @@
 import type { CashflowMonth, CategorySpend } from '../data/contract';
 
-/** One month of the trend chart. `expense` is a positive magnitude, `net` is income minus expense. */
+/**
+ * One month of the trend chart. `expense` is spend as a positive number (negative when refunds
+ * exceed spend), so `net` is always income minus expense.
+ */
 export interface TrendPoint {
   month: string;
   income: number;
   expense: number;
   net: number;
-  /** Trailing 3-month mean of `net`; averaged over fewer months at the start of the series. */
+  /** Mean of `net` over this and the two previous calendar months, counting only months present. */
   netAvg3: number;
 }
 
@@ -29,20 +32,28 @@ export interface CategoryRow {
   change: number | null;
 }
 
-const WINDOW = 3;
-
-/** Sorts by month, converts expense to a positive magnitude and adds the trailing 3-month average of net. */
-export function buildTrendPoints(cashflowMonthly: readonly CashflowMonth[]): TrendPoint[] {
-  const sorted = [...cashflowMonthly].sort((a, b) => a.month.localeCompare(b.month));
-  const nets = sorted.map((m) => m.income + m.expense);
-  return sorted.map((m, i) => {
-    const slice = nets.slice(Math.max(0, i - WINDOW + 1), i + 1);
+/**
+ * Sorts by month, flips expense to spend-positive and adds the trailing 3-calendar-month average
+ * of net. Months `>= beforeMonth` (`YYYY-MM`, the snapshot's month) are dropped because that
+ * month is still partial.
+ */
+export function buildTrendPoints(
+  cashflowMonthly: readonly CashflowMonth[],
+  beforeMonth?: string,
+): TrendPoint[] {
+  const sorted = cashflowMonthly
+    .filter((m) => beforeMonth === undefined || m.month < beforeMonth)
+    .sort((a, b) => a.month.localeCompare(b.month));
+  const netByMonth = new Map(sorted.map((m) => [m.month, m.income + m.expense]));
+  return sorted.map((m) => {
+    const window = [m.month, previousMonth(m.month), previousMonth(previousMonth(m.month))];
+    const nets = window.flatMap((w) => netByMonth.get(w) ?? []);
     return {
       month: m.month,
       income: m.income,
-      expense: Math.abs(m.expense),
+      expense: -m.expense,
       net: m.income + m.expense,
-      netAvg3: slice.reduce((s, n) => s + n, 0) / slice.length,
+      netAvg3: nets.reduce((s, n) => s + n, 0) / nets.length,
     };
   });
 }
@@ -74,11 +85,12 @@ function previousMonth(month: string): string {
   return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
 }
 
+/** Per-category spend for `month` as positive dollars, net of refunds. */
 function totalsByCategory(rows: readonly CategorySpend[], month: string): Map<string, number> {
   const totals = new Map<string, number>();
   for (const r of rows) {
     if (r.month !== month) continue;
-    totals.set(r.category, (totals.get(r.category) ?? 0) + Math.max(0, -r.amount));
+    totals.set(r.category, (totals.get(r.category) ?? 0) - r.amount);
   }
   return totals;
 }

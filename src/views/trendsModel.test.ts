@@ -35,6 +35,31 @@ describe('buildTrendPoints', () => {
     ]);
     expect(pts.map((p) => p.netAvg3)).toEqual([60, 45, 30, (30 + 0 + 90) / 3]);
   });
+
+  it('averages over calendar months, skipping gaps', () => {
+    const pts = buildTrendPoints([
+      cf('2025-01', 100, -40),
+      cf('2025-02', 100, -70),
+      cf('2025-04', 100, -10),
+      cf('2025-08', 100, -50),
+    ]);
+    expect(pts.map((p) => p.netAvg3)).toEqual([60, 45, (30 + 90) / 2, 50]);
+  });
+
+  it('keeps net = income - expense when refunds exceed spend', () => {
+    const [p] = buildTrendPoints([cf('2025-01', 100, 30)]);
+    expect(p).toMatchObject({ expense: -30, net: 130 });
+    expect(p!.income - p!.expense).toBe(p!.net);
+  });
+
+  it('drops months at or after the cutoff month', () => {
+    const pts = buildTrendPoints(
+      [cf('2025-01', 100, -40), cf('2025-02', 100, -70), cf('2025-03', 100, -10)],
+      '2025-03',
+    );
+    expect(pts.map((p) => p.month)).toEqual(['2025-01', '2025-02']);
+    expect(buildTrendPoints([cf('2025-03', 1, -1)], '2025-03')).toEqual([]);
+  });
 });
 
 describe('lastMonthsTable', () => {
@@ -100,7 +125,14 @@ describe('topCategories', () => {
     expect(topCategories(rows, '2025-01').at(0)).toMatchObject({ amount: 100, previous: 100, change: 0 });
   });
 
-  it('ignores refunds and returns nothing for empty or unknown months', () => {
+  it('nets refunds against spend within a category', () => {
+    expect(topCategories([spend('2025-01', 'A', -100), spend('2025-01', 'A', 100)], '2025-01')).toEqual([]);
+    expect(
+      topCategories([spend('2025-01', 'A', -100), spend('2025-01', 'A', 40)], '2025-01')[0],
+    ).toMatchObject({ amount: 60 });
+  });
+
+  it('drops net-credit categories and returns nothing for empty or unknown months', () => {
     expect(topCategories([spend('2025-01', 'A', 20)], '2025-01')).toEqual([]);
     expect(topCategories([], '2025-01')).toEqual([]);
   });
