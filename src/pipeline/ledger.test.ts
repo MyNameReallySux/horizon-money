@@ -136,6 +136,51 @@ describe('buildPaycheckLedger', () => {
   });
 });
 
+describe('buildPaycheckLedger with pay periods', () => {
+  const schedule: PaySchedule = { cadence: 'biweekly', anchorDate: '2025-01-08', expectedAmount: 3200 };
+  const payDay = (periodEnd: string): string => new Date(Date.parse(periodEnd) + 5 * 86_400_000).toISOString().slice(0, 10);
+  const stubFor = (periodEnd: string) => ({ date: payDay(periodEnd), netPay: 3200, periodEnd });
+  const before = { date: '2024-12-25', netPay: 3200 };
+  // Period ends fall on a 14-day grid, then shift by a week after 2025-01-31; 2025-03-21 has no stub.
+  const stubs = ['2025-01-03', '2025-01-17', '2025-01-31', '2025-02-07', '2025-02-21', '2025-03-07', '2025-04-04'].map(stubFor);
+
+  it('keeps every stub on a slot across a one-week phase shift', () => {
+    const rows = buildPaycheckLedger(schedule, [before, ...stubs], [], '2025-04-10');
+    expect(rows.map((r) => [r.expectedDate, r.status])).toEqual([
+      ['2024-12-25', 'stub-only'],
+      ['2025-01-08', 'stub-only'],
+      ['2025-01-22', 'stub-only'],
+      ['2025-02-05', 'stub-only'],
+      ['2025-02-12', 'stub-only'],
+      ['2025-02-26', 'stub-only'],
+      ['2025-03-12', 'stub-only'],
+      ['2025-03-26', 'missed'],
+      ['2025-04-09', 'stub-only'],
+    ]);
+    expect(rows.filter((r) => r.status === 'missed')).toHaveLength(1);
+    expect(rows.some((r) => r.status === 'off-cycle')).toBe(false);
+  });
+
+  it('shows the shifted stubs as off-cycle without period data', () => {
+    const plain = stubs.map(({ date, netPay }) => ({ date, netPay }));
+    const rows = buildPaycheckLedger(schedule, plain, [], '2025-04-10');
+    expect(rows.some((r) => r.status === 'off-cycle')).toBe(true);
+  });
+
+  it('matches deposits to the shifted slots', () => {
+    const deposits = [{ date: '2025-02-13', amount: 3100 }];
+    const rows = buildPaycheckLedger(schedule, stubs, deposits, '2025-04-10');
+    expect(rows.find((r) => r.expectedDate === '2025-02-12')).toMatchObject({ status: 'paid', receivedDate: '2025-02-13' });
+  });
+
+  it('sends a second stub for the same period to off-cycle', () => {
+    const bonus = { date: '2025-02-14', netPay: 500, periodEnd: '2025-02-07' };
+    const rows = buildPaycheckLedger(schedule, [...stubs, bonus], [], '2025-04-10');
+    expect(rows.filter((r) => r.status === 'off-cycle').map((r) => [r.expectedDate, r.stubNetPay])).toEqual([['2025-02-14', 500]]);
+    expect(rows.find((r) => r.expectedDate === '2025-02-12')).toMatchObject({ status: 'stub-only', stubNetPay: 3200 });
+  });
+});
+
 describe('deriveSchedule', () => {
   it('anchors on the slot at or before the latest stub and expects the median net pay', () => {
     const schedule = deriveSchedule([

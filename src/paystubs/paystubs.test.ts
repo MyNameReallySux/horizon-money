@@ -122,6 +122,11 @@ describe('mergeIndex', () => {
     expect(merged[1]).toMatchObject({ netPay: 3300, file: '2026/a.pdf' });
   });
 
+  it('keeps a known pay period when the incoming entry has none', () => {
+    const merged = mergeIndex([entry({ periodStart: '2026-08-22', periodEnd: '2026-09-04' })], [entry({})]);
+    expect(merged[0]).toMatchObject({ periodStart: '2026-08-22', periodEnd: '2026-09-04' });
+  });
+
   it('lets an incoming file replace the old one', () => {
     const merged = mergeIndex([entry({ file: '2026/old.pdf' })], [entry({ file: '2026/new.pdf' })]);
     expect(merged[0]?.file).toBe('2026/new.pdf');
@@ -132,6 +137,12 @@ describe('isPaystubIndex', () => {
   const good = { version: 1, updatedAt: '2026-11-01T00:00:00.000Z', stubs: [entry({ file: '2026/a.pdf' })] };
 
   it('accepts a valid index', () => expect(isPaystubIndex(good)).toBe(true));
+
+  it('accepts entries with a pay period and rejects a malformed one', () => {
+    const withPeriod = { ...good, stubs: [entry({ periodStart: '2026-10-01', periodEnd: '2026-10-14' })] };
+    expect(isPaystubIndex(withPeriod)).toBe(true);
+    expect(isPaystubIndex({ ...good, stubs: [entry({ periodEnd: 'soon' })] })).toBe(false);
+  });
 
   it.each([
     ['wrong version', { ...good, version: 2 }],
