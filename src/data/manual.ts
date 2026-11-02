@@ -37,8 +37,15 @@ export interface ManualEntry {
 const isRecord = (x: unknown): x is Record<string, unknown> =>
   typeof x === 'object' && x !== null && !Array.isArray(x);
 
-const isIsoDate = (x: unknown): x is string =>
-  typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x) && !Number.isNaN(Date.parse(x));
+/** True for a real calendar date written `YYYY-MM-DD`; `2026-02-31` and `2026-13-01` are rejected. Never throws. */
+export function isIsoDate(x: unknown): x is string {
+  if (typeof x !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x)) return false;
+  const [y, m, d] = x.split('-').map(Number) as [number, number, number];
+  const parsed = new Date(Date.UTC(y, m - 1, d));
+  // Date.UTC maps years 0-99 to 1900-1999; setUTCFullYear restores the literal year.
+  parsed.setUTCFullYear(y);
+  return parsed.getUTCFullYear() === y && parsed.getUTCMonth() === m - 1 && parsed.getUTCDate() === d;
+}
 
 const isFiniteNumber = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 

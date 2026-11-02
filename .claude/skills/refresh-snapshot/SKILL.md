@@ -20,6 +20,8 @@ This skill will:
 This skill will not:
 
 - Call any Monarch write tool (create, update, delete, or any tool that changes Monarch data).
+  `.claude/settings.json` puts every Monarch write tool on ask, so a write always prompts; keep
+  that list in step with the server's tools.
 - Write anything inside the repo. The repo is public; real financial data never enters git.
 - Print balances, account names, merchants or other figures into chat, commits or comments.
   Report counts and the assemble summary line only.

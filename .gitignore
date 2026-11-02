@@ -3,6 +3,9 @@ private/
 data/
 !/src/data/
 snapshot.json
+raw/
+!src/fixtures/raw/
+manual.json
 *.snapshot.json
 !src/fixtures/*.snapshot.json
 *.pdf

@@ -1,3 +1,4 @@
+import { isIsoDate } from '../data/manual.ts';
 import type { RecurringFrequency, RecurringItem } from '../data/contract.ts';
 import { cents, isFiniteNumber, isRecord, type Warn } from './raw.ts';
 
@@ -26,7 +27,7 @@ export function mapFrequency(value: unknown): RecurringFrequency | null {
 
 /**
  * Maps GetRecurring expense streams. Amounts are made negative since these are bills; streams
- * with an unrecognised frequency are skipped and counted.
+ * with an unrecognised frequency, or without a name, amount or valid next date, are skipped and counted.
  */
 export function mapRecurring(raw: unknown, warn: Warn): RecurringItem[] {
   const streams = isRecord(raw) && isRecord(raw.recurring_expense_streams)
@@ -39,7 +40,8 @@ export function mapRecurring(raw: unknown, warn: Warn): RecurringItem[] {
   let malformed = 0;
   for (const s of streams) {
     if (!isRecord(s)) continue;
-    if (typeof s.name !== 'string' || !isFiniteNumber(s.amount)) {
+    const nextDate = typeof s.next_forecasted_date === 'string' ? s.next_forecasted_date.slice(0, 10) : '';
+    if (typeof s.name !== 'string' || !isFiniteNumber(s.amount) || !isIsoDate(nextDate)) {
       malformed++;
       continue;
     }
@@ -53,10 +55,10 @@ export function mapRecurring(raw: unknown, warn: Warn): RecurringItem[] {
       amount: cents(-Math.abs(s.amount)),
       frequency,
       category: typeof s.category === 'string' ? s.category : 'Uncategorized',
-      nextDate: typeof s.next_forecasted_date === 'string' ? s.next_forecasted_date.slice(0, 10) : '',
+      nextDate,
     });
   }
   if (unknownFrequency > 0) warn(`skipped ${unknownFrequency} recurring stream(s) with an unknown frequency`);
-  if (malformed > 0) warn(`skipped ${malformed} recurring stream(s) with a missing name or amount`);
+  if (malformed > 0) warn(`skipped ${malformed} recurring stream(s) with a missing name, amount or next date`);
   return out.sort((a, b) => a.nextDate.localeCompare(b.nextDate) || a.name.localeCompare(b.name));
 }

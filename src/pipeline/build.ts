@@ -19,17 +19,22 @@ export interface RawInputs {
 }
 
 export interface BuildOptions {
-  /** Moment the snapshot is produced; its date is "today" for paycheck cutoffs. */
+  /** Moment the snapshot is produced; its local calendar date is "today" for paycheck cutoffs. */
   now: Date;
   cashflow?: CashflowOptions;
 }
+
+/** Local-calendar `YYYY-MM-DD`; `toISOString` gives the UTC date, which is tomorrow for an evening run west of UTC. */
+const localDate = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /** Appends manual accounts after Monarch ones; an id present in both is an error. */
 export function mergeManualAccounts(monarch: Account[], manual: ManualEntry): Account[] {
   const taken = new Set(monarch.map((a) => a.id));
   const added = manual.accounts.map((m): Account => {
     if (taken.has(m.id)) throw new Error('manual.json: an account id collides with a Monarch account id');
-    const account: Account = { id: m.id, name: m.name, kind: m.kind, balance: m.balance, source: 'manual', asOf: m.asOf };
+    const balance = m.kind === 'credit' || m.kind === 'loan' ? -Math.abs(m.balance) : m.balance;
+    const account: Account = { id: m.id, name: m.name, kind: m.kind, balance, source: 'manual', asOf: m.asOf };
     if (m.apr !== undefined) account.apr = m.apr;
     return account;
   });
@@ -64,7 +69,7 @@ export function buildSnapshot(
     return map(value);
   };
 
-  const today = now.toISOString().slice(0, 10);
+  const today = localDate(now);
   const paySchedule = manual?.paySchedule;
   let paychecks: Snapshot['paychecks'] = [];
   if (input.paychecks === undefined) {

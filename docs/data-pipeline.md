@@ -58,3 +58,10 @@ counts, plus warnings, and never prints names or amounts. Exit code 1 means noth
 
 In a Claude Code session in this repo, ask to "refresh my dashboard data" or run
 `/refresh-snapshot`. The skill only calls Monarch read tools.
+
+## Monarch write safety
+
+Refresh is read-only. Monarch writes stay possible in this repo, but `.claude/settings.json`
+lists every `mcp__monarch__` write tool under `permissions.ask`, so each one prompts every time,
+even after "always allow". JSON allows no comments, so the reasoning lives here. Keep that list
+in step with the server's tools when Monarch adds or renames one.

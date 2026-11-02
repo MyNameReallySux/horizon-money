@@ -164,6 +164,25 @@ describe('mapRecurring', () => {
     expect(messages).toEqual(['skipped 1 recurring stream(s) with an unknown frequency']);
   });
 
+  it('skips streams without a valid next date and counts them', () => {
+    const stream = (extra: Record<string, unknown>) => ({ name: 'Sample', amount: 10, frequency: 'monthly', ...extra });
+    const raw = {
+      recurring_expense_streams: {
+        recurring_transaction_streams: [
+          stream({}),
+          stream({ next_forecasted_date: null }),
+          stream({ next_forecasted_date: '2026-02-31' }),
+          stream({ next_forecasted_date: 'soon' }),
+          stream({ next_forecasted_date: '2026-12-05T00:00:00Z' }),
+        ],
+      },
+    };
+    const { messages, warn } = collect();
+    const items = mapRecurring(raw, warn);
+    expect(items.map((i) => i.nextDate)).toEqual(['2026-12-05']);
+    expect(messages).toEqual(['skipped 4 recurring stream(s) with a missing name, amount or next date']);
+  });
+
   it('throws on an unexpected shape', () => {
     expect(() => mapRecurring({}, noWarn)).toThrow(/recurring\.json/);
   });
@@ -269,6 +288,16 @@ describe('mergeManualAccounts', () => {
     });
   });
 
+  it.each(['credit', 'loan'] as const)('normalises a positive manual %s balance to negative', (kind) => {
+    const entry: ManualEntry = { ...manual, accounts: [{ ...manual.accounts[0]!, kind, balance: 500 }] };
+    expect(mergeManualAccounts(monarch, entry).at(-1)?.balance).toBe(-500);
+  });
+
+  it('leaves a positive manual asset balance alone', () => {
+    const entry: ManualEntry = { ...manual, accounts: [{ ...manual.accounts[0]!, kind: 'savings', balance: 500 }] };
+    expect(mergeManualAccounts(monarch, entry).at(-1)?.balance).toBe(500);
+  });
+
   it('throws on an id collision', () => {
     const clash: ManualEntry = { ...manual, accounts: [{ ...manual.accounts[0]!, id: 'acct-01' }] };
     expect(() => mergeManualAccounts(monarch, clash)).toThrow(/collides/);
@@ -317,6 +346,14 @@ describe('buildSnapshot', () => {
     expect(snapshot.paychecks).toEqual([]);
     expect(snapshot).not.toHaveProperty('paySchedule');
     expect(warnings).toHaveLength(5);
+  });
+
+  it('uses the local date for today, not the UTC date', () => {
+    const localEvening = new Date(2026, 8, 17, 23, 30);
+    const { snapshot } = buildSnapshot({ accounts: accountsRaw, paychecks: paychecksRaw, manual }, { now: localEvening });
+    const expected = snapshot.paychecks.map((p) => p.expectedDate);
+    expect(expected).toContain('2026-09-04');
+    expect(expected).not.toContain('2026-09-18');
   });
 
   it('warns that paychecks need a pay schedule', () => {
