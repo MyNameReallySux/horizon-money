@@ -1,0 +1,165 @@
+.goals-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.goals-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.goals-periods {
+  display: flex;
+  gap: 6px;
+}
+
+.goals-period {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.goals-period[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.goals-period:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.goals-period:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.goals-soon {
+  font-size: 0.75rem;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.goal-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.goal-ring {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  overflow: visible;
+}
+
+.goal-ring-track,
+.goal-ring-fill {
+  fill: none;
+  stroke-width: 9;
+}
+
+.goal-ring-track {
+  stroke: var(--grid);
+}
+
+.goal-ring-fill {
+  stroke-linecap: round;
+  stroke: var(--muted);
+}
+
+.goal-ring-fill.goal-good {
+  stroke: var(--income);
+}
+
+.goal-ring-fill.goal-near {
+  stroke: #d97706;
+}
+
+.goal-ring-fill.goal-bad {
+  stroke: var(--expense);
+}
+
+.goal-tick {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+
+.goal-tick-stretch {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.goal-ring-text {
+  fill: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.goal-body {
+  min-width: 0;
+}
+
+.goal-name {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.goal-figures,
+.goal-status,
+.goal-hint {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.goal-direction,
+.goal-hint {
+  color: var(--muted);
+}
+
+.goal-status {
+  font-weight: 600;
+}
+
+.goal-text-good {
+  color: var(--income);
+}
+
+.goal-text-near {
+  color: #d97706;
+}
+
+.goal-text-bad {
+  color: var(--expense);
+}
+
+.goal-text-none {
+  color: var(--muted);
+}
+
+.goals-empty {
+  margin-top: 12px;
+}
+
+.goals-empty p {
+  margin: 0 0 4px;
+}
