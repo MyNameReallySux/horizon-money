@@ -49,7 +49,7 @@ export interface DebtViewModel {
 export function defaultBudgets(debts: Debt[]): number[] {
   if (debts.length === 0) return [];
   const minimums = debts.reduce((sum, d) => sum + d.minPayment, 0);
-  const base = Math.max(100, Math.ceil(minimums / 100) * 100);
+  const base = Math.max(100, Math.ceil(Math.round(minimums * 100) / 10000) * 100);
   return [base, base + 500, base + 1000];
 }
 
@@ -66,7 +66,8 @@ function simulate(debts: Debt[], budget: number, startMonth: string): PayoffPlan
  */
 export function buildDebtViewModel(snapshot: Snapshot, budgets: number[]): DebtViewModel {
   const { debts, warnings } = debtsFromAccounts(snapshot.accounts);
-  const startMonth = snapshot.generatedAt.slice(0, 7);
+  const generated = new Date(snapshot.generatedAt);
+  const startMonth = `${generated.getFullYear()}-${String(generated.getMonth() + 1).padStart(2, '0')}`;
   const totalBalance = debts.reduce((sum, d) => sum + d.balance, 0);
   const monthlyInterest = debts.reduce((sum, d) => sum + (d.balance * d.apr) / 12 / 100, 0);
   const kpis: DebtKpis = {

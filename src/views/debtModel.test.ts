@@ -48,6 +48,25 @@ describe('buildDebtViewModel', () => {
     expect(defaultBudgets([])).toEqual([]);
   });
 
+  it('rounds default budgets in whole cents so float sums do not overshoot', () => {
+    const debts = [253.27, 2.88, 43.85].map((minPayment, i) => ({
+      id: `d${i}`,
+      name: `Debt ${i}`,
+      balance: 1000,
+      apr: 10,
+      minPayment,
+    }));
+    expect(defaultBudgets(debts)).toEqual([300, 800, 1300]);
+  });
+
+  it('derives the start month from the local date of generatedAt', () => {
+    const generatedAt = '2030-02-01T03:00:00Z';
+    const local = new Date(generatedAt);
+    const expected = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}`;
+    const m = buildDebtViewModel({ ...snap(accounts), generatedAt }, [500, 1000, 1500]);
+    expect(m.startMonth).toBe(expected);
+  });
+
   it('orders cards by avalanche: APR desc, then smaller balance', () => {
     const m = buildDebtViewModel(snap(accounts), [500, 1000, 1500]);
     expect(m.cards.map((c) => c.id)).toEqual(['c', 'b', 'a']);

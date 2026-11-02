@@ -164,12 +164,15 @@ export function Debt({ snapshot }: ViewProps) {
                 <td>{usdCents.format(c.balance)}</td>
                 <td>{c.apr.toFixed(2)}%</td>
                 <td>{usdCents.format(c.minPayment)}</td>
-                <td>{c.payoffMonth ?? 'not within plan'}</td>
-                <td>{usdCents.format(c.interestPaid)}</td>
+                <td>{model.scenarios[1]?.feasible ? (c.payoffMonth ?? 'not within plan') : 'n/a'}</td>
+                <td>{model.scenarios[1]?.feasible ? usdCents.format(c.interestPaid) : 'n/a'}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {!model.scenarios[1]?.feasible && (
+          <p className="debt-note">This budget doesn't cover the minimum payments, so no per-card plan is shown.</p>
+        )}
         {model.warnings.map((w) => (
           <p className="debt-note" key={w}>
             {w}
