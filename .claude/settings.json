@@ -1,14 +1,19 @@
 {
   "permissions": {
-    "ask": [
-      "mcp__monarch__AllocateToGoal",
+    "allow": [
       "mcp__monarch__BulkRecategorizeTransactions",
       "mcp__monarch__BulkUpdateTransactions",
+      "mcp__monarch__CreateRule",
+      "mcp__monarch__CreateTag",
+      "mcp__monarch__UpdateRule",
+      "mcp__monarch__UpdateTransaction",
+      "mcp__monarch__UpdateTransactionSplits"
+    ],
+    "ask": [
+      "mcp__monarch__AllocateToGoal",
       "mcp__monarch__CreateCategory",
       "mcp__monarch__CreateGoal",
       "mcp__monarch__CreateMerchant",
-      "mcp__monarch__CreateRule",
-      "mcp__monarch__CreateTag",
       "mcp__monarch__CreateTransaction",
       "mcp__monarch__DeleteCategory",
       "mcp__monarch__DeleteGoal",
@@ -22,10 +27,7 @@
       "mcp__monarch__UpdateCategory",
       "mcp__monarch__UpdateGoal",
       "mcp__monarch__UpdateMerchant",
-      "mcp__monarch__UpdateRule",
-      "mcp__monarch__UpdateTag",
-      "mcp__monarch__UpdateTransaction",
-      "mcp__monarch__UpdateTransactionSplits"
+      "mcp__monarch__UpdateTag"
     ]
   }
 }
