@@ -9,8 +9,12 @@ export interface TextItem {
 /** Separator between cells of one reconstructed line. */
 export const CELL_SEPARATOR = ' | ';
 
+/** An item whose string is one word with a space between every letter ("C h e c k"). */
+const SPACED_WORD = /^(?:[A-Za-z] )+[A-Za-z]$/;
+
 /**
- * Rebuilds readable lines from pdfjs text items. Items are grouped into rows by rounded y (top row
+ * Rebuilds readable lines from pdfjs text items. An item that is a single letter-spaced word
+ * ("C h e c k") is collapsed to the word. Items are grouped into rows by rounded y (top row
  * first) and ordered by x. A pay stub header can arrive one character per item, so runs of
  * single-character items collapse into one word; a whitespace item, or a horizontal gap wider
  * than a fifth of the font size when widths are known, ends the word. Words and multi-character
@@ -42,7 +46,8 @@ export function linesFromTextItems(items: TextItem[]): string[] {
           word += item.str;
         } else {
           flush();
-          cells.push(item.str.trim());
+          const text = item.str.trim();
+          cells.push(SPACED_WORD.test(text) ? text.replace(/ /g, '') : text);
         }
         prevEnd = item.width === undefined ? undefined : x + item.width;
       }

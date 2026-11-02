@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { linesFromTextItems, type TextItem } from './pdfText.ts';
+import { parsePayPeriod } from './period.ts';
 
 const item = (str: string, x: number, y: number, width?: number): TextItem => ({
   str,
@@ -27,6 +28,24 @@ describe('linesFromTextItems', () => {
       item('Period End', 200, 100),
     ]);
     expect(lines).toEqual(['Name | Period End', 'Fake Person | 01-14-2025']);
+  });
+
+  it('collapses letter-spaced item strings and leaves ordinary text alone', () => {
+    const words = ['E m p l o y e e', 'I d', 'C h e c k', 'D a t e'];
+    const items = [...words.map((w, i) => item(w, 10 + i * 80, 100)), item('Fake Person', 10, 80)];
+    expect(linesFromTextItems(items)).toEqual(['Employee | Id | Check | Date', 'Fake Person']);
+  });
+
+  it('feeds a letter-spaced header and its values row to the period parser', () => {
+    const header = ['Employee', 'Id', 'Employee', 'Name', 'Check', 'Date', 'Period', 'Start', 'Period', 'End', 'Check', 'No'].map(
+      (word, i) => item([...word].join(' '), 10 + i * 60, 100),
+    );
+    const values = ['ab0000', 'Fake', 'Person', '01-17-2025', '01-01-2025', '01-14-2025', '0000'].map((v, i) =>
+      item(v, 10 + i * 60, 80),
+    );
+    const lines = linesFromTextItems([...values, ...header]);
+    expect(lines[0]).toBe('Employee | Id | Employee | Name | Check | Date | Period | Start | Period | End | Check | No');
+    expect(parsePayPeriod(lines.join('\n'))).toEqual({ start: '2025-01-01', end: '2025-01-14' });
   });
 
   it('groups items whose y differs by sub-point noise and drops empty rows', () => {
