@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { Snapshot } from '../data/contract';
 import { Debt } from './Debt';
+import { Goals } from './Goals';
 import { Overview } from './Overview';
 
 export interface ViewProps {
@@ -23,6 +24,7 @@ export interface ViewDefinition {
 export const views: readonly ViewDefinition[] = [
   { id: 'overview', label: 'Overview', component: Overview },
   { id: 'debt', label: 'Debt', component: Debt },
+  { id: 'goals', label: 'Goals', component: Goals },
 ];
 
 /**
