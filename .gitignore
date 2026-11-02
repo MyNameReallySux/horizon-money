@@ -6,6 +6,7 @@ snapshot.json
 raw/
 !src/fixtures/raw/
 manual.json
+targets.json
 browser/
 paystubs/
 !/src/paystubs/

@@ -375,4 +375,59 @@ describe('buildSnapshot', () => {
     const clash = { ...manual, accounts: [{ ...manual.accounts[0]!, id: 'acct-02' }] };
     expect(() => buildSnapshot({ accounts: accountsRaw, manual: clash }, { now })).toThrow(/collides/);
   });
+
+  describe('targets', () => {
+    const cap = { id: 'week-cap', name: 'Test cap', period: 'week', metric: 'spending', target: 100, direction: 'max' };
+    const floor = {
+      id: 'year-fund',
+      name: 'Test fund',
+      period: 'year',
+      metric: 'emergency-fund',
+      target: 1000,
+      direction: 'min',
+      stretch: 1500,
+      by: '2027-06-30',
+    };
+    const targets = { version: 1, targets: [cap, floor] };
+
+    it('appends targets after Monarch goals, carrying direction, stretch and by', () => {
+      const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, goals: goalsRaw, targets }, { now });
+      expect(isSnapshot(snapshot)).toBe(true);
+      expect(snapshot.goals.map((g) => g.id)).toEqual(['goal-01', 'week-cap', 'year-fund']);
+      expect(snapshot.goals[1]).toEqual(cap);
+      expect(snapshot.goals[2]).toEqual(floor);
+      expect(warnings.some((w) => w.includes('targets.json'))).toBe(false);
+    });
+
+    it('gives a missing targets file no warning and leaves goals alone', () => {
+      const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, goals: goalsRaw }, { now });
+      expect(snapshot.goals.map((g) => g.id)).toEqual(['goal-01']);
+      expect(warnings.some((w) => w.includes('targets.json'))).toBe(false);
+    });
+
+    it('works without a Monarch goals file', () => {
+      const { snapshot } = buildSnapshot({ accounts: accountsRaw, targets }, { now });
+      expect(snapshot.goals.map((g) => g.id)).toEqual(['week-cap', 'year-fund']);
+    });
+
+    it('surfaces parse warnings and drops invalid entries without throwing', () => {
+      const bad = { version: 1, targets: [cap, { ...floor, target: -1 }] };
+      const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, targets: bad }, { now });
+      expect(snapshot.goals.map((g) => g.id)).toEqual(['week-cap']);
+      expect(warnings.filter((w) => w.includes('targets.json'))).toHaveLength(1);
+    });
+
+    it('ignores a wrong-version file with a warning', () => {
+      const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, targets: { version: 2, targets: [cap] } }, { now });
+      expect(snapshot.goals).toEqual([]);
+      expect(warnings.filter((w) => w.includes('targets.json'))).toHaveLength(1);
+    });
+
+    it('lets a target replace a Monarch goal with the same id and warns', () => {
+      const clash = { version: 1, targets: [{ ...cap, id: 'goal-01' }] };
+      const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, goals: goalsRaw, targets: clash }, { now });
+      expect(snapshot.goals).toEqual([{ ...cap, id: 'goal-01' }]);
+      expect(warnings.some((w) => w.includes('match a Monarch goal id'))).toBe(true);
+    });
+  });
 });

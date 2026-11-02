@@ -104,6 +104,12 @@ export interface Goal {
   metric: string;
   /** Target in the metric's unit, positive. */
   target: number;
+  /** `max` is a cap to stay under, `min` a floor to reach. Absent on Monarch goals, which are floors. */
+  direction?: 'max' | 'min';
+  /** A more ambitious value than `target`, in the same unit. */
+  stretch?: number;
+  /** ISO date `YYYY-MM-DD` the goal is due, for year goals. */
+  by?: string;
 }
 
 /** A fixed biweekly pay cadence, used to derive expected paycheck dates. */
