@@ -40,6 +40,7 @@ function main(): void {
     throw new Error(`raw/accounts.json not found in the data dir (resolved via ${via}); run the refresh-snapshot skill first`);
   }
   const manualPath = join(dir, 'manual.json');
+  const paystubsPath = join(dir, 'paystubs', 'index.json');
   const input: RawInputs = {
     accounts,
     cashflowMonthly: raw('cashflow-monthly.json'),
@@ -49,6 +50,7 @@ function main(): void {
     goals: raw('goals.json'),
     paychecks: raw('paychecks.json'),
     manual: existsSync(manualPath) ? readJson(manualPath, false) : undefined,
+    paystubs: existsSync(paystubsPath) ? readJson(paystubsPath, false) : undefined,
   };
 
   const { snapshot, warnings } = buildSnapshot(input, { now: new Date() });

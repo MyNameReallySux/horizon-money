@@ -1,9 +1,10 @@
 import { SNAPSHOT_VERSION, type Account, type Snapshot } from '../data/contract.ts';
 import { isManualEntry, type ManualEntry } from '../data/manual.ts';
+import { isPaystubIndex } from '../paystubs/index.ts';
 import { mapAccounts } from './accounts.ts';
 import { DEFAULT_CASHFLOW_OPTIONS, mapCashflow, mapSpending, type CashflowOptions } from './cashflow.ts';
 import { mapGoals } from './goals.ts';
-import { buildPaychecks, mapDeposits } from './paychecks.ts';
+import { buildPaycheckLedger, buildPaychecks, deriveSchedule, mapDeposits } from './paychecks.ts';
 import { mapRecurring } from './recurring.ts';
 
 /** Parsed (already unwrapped) contents of the raw files; `undefined` means the file was absent. */
@@ -16,6 +17,8 @@ export interface RawInputs {
   goals?: unknown;
   paychecks?: unknown;
   manual?: unknown;
+  /** Parsed `paystubs/index.json`; when present, paychecks are reconciled against it. */
+  paystubs?: unknown;
 }
 
 export interface BuildOptions {
@@ -72,7 +75,20 @@ export function buildSnapshot(
   const today = localDate(now);
   const paySchedule = manual?.paySchedule;
   let paychecks: Snapshot['paychecks'] = [];
-  if (input.paychecks === undefined) {
+  if (input.paystubs !== undefined) {
+    if (!isPaystubIndex(input.paystubs)) {
+      throw new Error('paystubs/index.json: does not match the pay stub index format (see docs/paystubs.md)');
+    }
+    const stubs = input.paystubs.stubs.map((s) => ({ date: s.payDate, netPay: s.netPay }));
+    const schedule = paySchedule ?? deriveSchedule(stubs, warn);
+    if (input.paychecks === undefined) warn('paychecks.json is missing; paychecks are reconciled without deposits');
+    const deposits = input.paychecks === undefined ? [] : mapDeposits(input.paychecks, warn);
+    if (schedule) {
+      paychecks = buildPaycheckLedger(schedule, stubs, deposits, today);
+    } else {
+      warn('paystubs/index.json has no stubs and manual.json has no paySchedule; paychecks section is empty');
+    }
+  } else if (input.paychecks === undefined) {
     warn('paychecks.json is missing; that section is empty');
   } else if (!paySchedule) {
     warn('no paySchedule in manual.json; paychecks section is empty');

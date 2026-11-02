@@ -11,6 +11,10 @@ you ----------------------> <dataDir>/manual.json --+
 `<dataDir>` is resolved as described in the README: `HORIZON_DATA_DIR`, then `./private/`,
 then `~/.horizon-money/`.
 
+Optionally, `<dataDir>/paystubs/index.json` (from `pnpm paystubs:download`, see
+[paystubs.md](paystubs.md)) is read too: when present, `paychecks` is reconciled against pay
+stubs instead of being built from deposits alone.
+
 ## raw/
 
 The Monarch Money MCP server is only reachable from a Claude Code session (OAuth), so the

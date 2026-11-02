@@ -56,7 +56,8 @@ This skill will not:
    a `filters` JSON string with `exclude_accounts` (an array of account names) when the user
    has duplicated accounts that double-count; only the user supplies those names.
 
-   For `paychecks.json`, call `GetTransactions` with the same `start_date` and `end_date`,
+   For `paychecks.json`, call `GetTransactions` with `start_date` set to January 1 of the previous calendar year (so last
+   year's pay stubs can match deposits), the same `end_date`,
    `filters` `{"transaction_type": "Credit", "categories": ["Paychecks"]}` (a JSON string),
    `limit` 100 and `offset` 0. While the response's `truncated` is true, call again with
    `offset` set to its `next_offset`. Concatenate every page's `transactions` into one
