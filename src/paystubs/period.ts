@@ -10,6 +10,7 @@ const MAX_SPAN_DAYS = 31;
 const LABEL_REACH = 40;
 
 const DATE = String.raw`(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})`;
+const TABLE_LOOKAHEAD = 3;
 const TABLE_LABEL = /check\s*date|pay\s*date|period\s*start(?:ing)?|period\s*begin(?:ning)?|period\s*end(?:ing)?/gi;
 const SEPARATOR = String.raw`\s*(?:-|–|—|to|through|thru)\s*`;
 const RANGE = new RegExp(String.raw`period[^0-9]{0,${LABEL_REACH}}?${DATE}${SEPARATOR}${DATE}`, 'i');
@@ -47,6 +48,8 @@ function validPeriod(a: string | null, b: string | null): PayPeriod | null {
 /**
  * Header-then-values table: a line holding the date labels (`Check Date | Period Start | Period
  * End`, cells separated by `|` or spaces) followed by a line with their dates in the same order.
+ * Up to {@link TABLE_LOOKAHEAD} non-empty lines after the header are searched, since the stub
+ * puts a short row without dates between the header and its values; lines with no dates are skipped.
  * The i-th date belongs to the i-th label, so the labels' own order picks start and end. Returns
  * null, not undefined, when the header is found but its values cannot be mapped, so the looser
  * shapes do not guess from the same text.
@@ -58,11 +61,13 @@ function tableRow(text: string): PayPeriod | null | undefined {
     const startAt = labels.findIndex((l) => /^period(?:start|begin)/.test(l));
     const endAt = labels.findIndex((l) => /^periodend/.test(l));
     if (startAt < 0 || endAt < 0 || [...lines[i]!.matchAll(DATE_G)].length > 0) continue;
-    const values = lines.slice(i + 1).find((l) => l !== '');
-    const dates = [...(values ?? '').matchAll(DATE_G)].map((m) => toIso(m[1]!));
-    if (dates.length === 0) continue;
-    if (dates.length !== labels.length) return null;
-    return validPeriod(dates[startAt]!, dates[endAt]!);
+    const following = lines.slice(i + 1).filter((l) => l !== '').slice(0, TABLE_LOOKAHEAD);
+    for (const row of following) {
+      const dates = [...row.matchAll(DATE_G)].map((m) => toIso(m[1]!));
+      if (dates.length === 0) continue;
+      if (dates.length !== labels.length) return null;
+      return validPeriod(dates[startAt]!, dates[endAt]!);
+    }
   }
   return undefined;
 }

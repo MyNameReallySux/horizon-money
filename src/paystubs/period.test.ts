@@ -32,6 +32,16 @@ describe('parsePayPeriod', () => {
       expect(parsePayPeriod(text)).toEqual(JAN);
     });
 
+    it('skips a short row without dates between the header and its values', () => {
+      const text = `${header}\nA | 7\nab0000 | Fake | Person | 01-17-2025 | 01-01-2025 | 01-14-2025 | 0000`;
+      expect(parsePayPeriod(text)).toEqual(JAN);
+    });
+
+    it('does not look past the first row that has dates', () => {
+      const text = `${header}\nA | 7\nab0000 | 01-01-2025 | 01-14-2025\nab0000 | 01-17-2025 | 01-01-2025 | 01-14-2025`;
+      expect(parsePayPeriod(text)).toBeNull();
+    });
+
     it('reads the table among other lines', () => {
       const text = `Fake Company\n${header}\n\n123 | Fake Name | 02-07-2025 | 01-20-2025 | 02-02-2025 | 99\nGross 1,000.00`;
       expect(parsePayPeriod(text)).toEqual({ start: '2025-01-20', end: '2025-02-02' });
