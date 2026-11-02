@@ -71,6 +71,8 @@ export function buildPaychecks(schedule: PaySchedule, deposits: Deposit[], today
 export interface Stub {
   date: string;
   netPay: number;
+  /** ISO last day of the stub's pay period, when read from its PDF. */
+  periodEnd?: string;
 }
 
 /** Days an item may sit from its nearest slot and still count as that slot's payment. */
@@ -144,6 +146,32 @@ interface Item {
   slot: number | undefined;
 }
 
+interface PeriodSegment {
+  /** First pay period end of the run; later ends follow every 14 days. */
+  first: number;
+  /** Typical days between a period end and its pay date. */
+  offset: number;
+}
+
+/**
+ * Splits stubs that carry a pay period into runs whose period ends share one 14-day grid. A gap
+ * between consecutive period ends that is not a multiple of 14 days is a phase shift and starts a
+ * new run. Each run's pay-date offset is the median of (pay date - period end).
+ */
+function periodSegments(stubs: Stub[]): PeriodSegment[] {
+  const dated = stubs
+    .filter((s): s is Stub & { periodEnd: string } => s.periodEnd !== undefined)
+    .map((s) => ({ end: dayNumber(s.periodEnd), pay: dayNumber(s.date) }))
+    .sort((a, b) => a.end - b.end);
+  const runs: (typeof dated)[] = [];
+  for (const item of dated) {
+    const run = runs[runs.length - 1];
+    if (run && mod(item.end - run[run.length - 1]!.end, PERIOD_DAYS) === 0) run.push(item);
+    else runs.push([item]);
+  }
+  return runs.map((run) => ({ first: run[0]!.end, offset: Math.round(median(run.map((r) => r.pay - r.end))) }));
+}
+
 /**
  * Gives each item its nearest slot when within {@link SLOT_WINDOW_DAYS}; where several items want
  * one slot the closest wins (earlier date on a tie) and the rest get no slot. Returns slot -> item.
@@ -176,6 +204,14 @@ function assignSlots(items: Item[], slots: number[]): Map<number, Item> {
  * What gets no slot is kept as `off-cycle`, a stub and deposit within {@link MATCH_WINDOW_DAYS}
  * of each other forming one entry; its `expectedDate` and `expectedAmount` are its own. Sorted by
  * `expectedDate`.
+ *
+ * When any stub has a `periodEnd`, slots from the first period on come from one grid per run of
+ * stubs whose period ends share a 14-day phase (see {@link periodSegments}) instead of the single
+ * anchor, so a schedule that shifted mid-history keeps every stub on a slot. A slot is a period
+ * end plus the run's typical pay offset; a stub with a period takes its slot exactly when its pay
+ * date is within {@link SLOT_WINDOW_DAYS} of it (the closest wins a clash). Other stubs and
+ * deposits match the nearest free slot as before, and the anchor grid still covers dates before
+ * the first period.
  */
 export function buildPaycheckLedger(
   schedule: PaySchedule,
@@ -193,10 +229,42 @@ export function buildPaycheckLedger(
   const start = all.length > 0 ? Math.min(...all.map((i) => i.day)) - SLOT_WINDOW_DAYS : anchor;
 
   const slots: number[] = [];
-  for (let day = anchor + Math.ceil((start - anchor) / PERIOD_DAYS) * PERIOD_DAYS; day <= end; day += PERIOD_DAYS) {
+  const segments = periodSegments(stubs);
+  const periodStubs = new Map<number, Item[]>();
+  let anchorLimit = end;
+  if (segments.length > 0) {
+    anchorLimit = segments[0]!.first + segments[0]!.offset - SLOT_WINDOW_DAYS - 1;
+    segments.forEach((seg, k) => {
+      const until = segments[k + 1]?.first ?? Infinity;
+      for (let e = seg.first; e < until && e + seg.offset <= end; e += PERIOD_DAYS) slots.push(e + seg.offset);
+    });
+    stubs.forEach((stub, i) => {
+      if (stub.periodEnd === undefined) return;
+      const periodEnd = dayNumber(stub.periodEnd);
+      const seg = segments.filter((s) => s.first <= periodEnd).pop()!;
+      const slot = periodEnd + seg.offset;
+      if (!slots.includes(slot) || Math.abs(stubItems[i]!.day - slot) > SLOT_WINDOW_DAYS) return;
+      periodStubs.set(slot, [...(periodStubs.get(slot) ?? []), stubItems[i]!]);
+    });
+  }
+  for (let day = anchor + Math.ceil((start - anchor) / PERIOD_DAYS) * PERIOD_DAYS; day <= anchorLimit; day += PERIOD_DAYS) {
     slots.push(day);
   }
-  const stubAt = assignSlots(stubItems, slots);
+  slots.sort((a, b) => a - b);
+
+  const stubAt = new Map<number, Item>();
+  for (const [slot, candidates] of periodStubs) {
+    const winner = candidates.reduce((a, b) => (Math.abs(b.day - slot) < Math.abs(a.day - slot) ? b : a));
+    winner.slot = slot;
+    stubAt.set(slot, winner);
+  }
+  const freeSlots = slots.filter((s) => !stubAt.has(s));
+  for (const [slot, item] of assignSlots(
+    stubItems.filter((s) => s.slot === undefined),
+    freeSlots,
+  )) {
+    stubAt.set(slot, item);
+  }
   const depositAt = assignSlots(depositItems, slots);
 
   const out: Paycheck[] = slots.flatMap((slot) => {
