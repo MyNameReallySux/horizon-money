@@ -13,6 +13,7 @@
     "test": "vitest run",
     "snapshot:assemble": "node scripts/snapshot/assemble.ts",
     "paystubs:download": "node scripts/paystubs/download.ts",
+    "paystubs:periods": "node scripts/paystubs/periods.ts",
     "check:leaks": "node scripts/check-leaks.mjs",
     "prepare": "git config core.hooksPath .githooks || exit 0"
   },

@@ -46,6 +46,21 @@ and names never reach the log. Exit code 1 means at least one stub or year faile
 `payDate`, `netPay`, `checkNumber`, `voucherNumber`, `file` (relative path, or `null` when the PDF
 is not on disk) and `source`. Runs merge into it; `src/paystubs/index.ts` has the guard.
 
+## Pay periods
+
+`pnpm paystubs:periods` reads each downloaded PDF's pay period (start and end date) with
+`pdfjs-dist`, a dev dependency used by node scripts only, and writes just `periodStart` and
+`periodEnd` onto that stub's entry in `index.json`. **Dates are the only thing stored**: the PDF
+text is parsed in memory and dropped, and the run prints counts only (`N stubs, K periods found,
+M not found`). `pnpm paystubs:download` keeps a stub's known period when it re-lists it.
+`src/paystubs/period.ts` documents the accepted label and date shapes.
+
+`pnpm paystubs:periods --probe` is for when periods are not found: it prints, for the first
+downloaded PDF only, the text lines that mention period, pay, begin, end, from, to or date. The
+output is **masked**: every digit is shown as `#`, and every word outside a small label
+vocabulary (pay, period, beginning, ending, from, to, date, check ...) as a run of `x`. It shows
+the label layout, never a value, name or amount, and writes nothing.
+
 ## Paycheck ledger
 
 With an index present, `paychecks` in the snapshot comes from stubs plus Monarch deposits
@@ -67,6 +82,14 @@ early. Each slot, through today, gets a `status`:
 | `missed` | Neither. |
 | `off-cycle` | A stub or deposit with no slot within 6 days or that lost its slot to a closer one (a bonus, say); a stub and deposit within 3 days of each other share one entry. Its `expectedDate` and `expectedAmount` are its own. |
 
+When stubs carry a `periodEnd`, slots no longer come from the single recent anchor. Period ends
+are grouped into runs that share one 14-day grid; a gap between consecutive period ends that is
+not a multiple of 14 days (a schedule that moved by a week, say) starts a new run. Each run's
+slots are its period ends plus the run's median pay-date offset, so a stub takes the slot of its
+own period when its pay date is within 6 days of it, and a shifted schedule shows no spurious
+`off-cycle` rows. Stubs without a period, and dates before the first period, keep using the
+anchor grid; with no period data at all nothing changes.
+
 `stubNetPay` carries the matched stub's net pay. Without an index nothing changes and these
 fields are absent.
 
@@ -75,5 +98,6 @@ fields are absent.
 - `paystubs/` and `browser/` are git-ignored, and `pnpm check:leaks` blocks them (and every
   `*.pdf`) anywhere except the source folders `src/paystubs/` and `src/fixtures/paystubs/`.
 - Fixtures there are synthetic; test PDFs are base64 strings, never files.
+- The period script stores dates only; its probe output is masked as described above.
 - Tokens are never written to disk. The browser profile does hold the portal's login cookies, so
   keep the data dir private.
