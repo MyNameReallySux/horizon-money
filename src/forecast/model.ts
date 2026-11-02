@@ -4,6 +4,7 @@ import type {
   RecurringFrequency,
   RecurringItem,
 } from '../data/contract.ts';
+import { isIsoDate } from '../data/manual.ts';
 
 /** Everything the forecast reads; pass pieces of a `Snapshot` straight through. */
 export interface ForecastInput {
@@ -200,8 +201,9 @@ function sampleStdDev(xs: number[]): number {
  *   `cashflowMonthly.income`.
  * - Fixed: negative recurring items expanded by {@link expandOccurrences}, as positive dollars.
  * - Flexible: per trailing complete month (the current partial month is excluded),
- *   `-expense` minus the recurring-bill monthly equivalent, floored at 0, averaged over the
- *   last `trailingMonths` months. Category rows are not read, so spend with no recurring
+ *   `-expense` minus the recurring-bill monthly equivalent, averaged unfloored over the
+ *   last `trailingMonths` months; only the resulting average is floored at 0. Recurring items
+ *   with an unknown frequency, invalid `nextDate` or non-finite amount are skipped with a warning. Category rows are not read, so spend with no recurring
  *   stream is whatever remains of the monthly total.
  * - Band: `low`/`high` are `net` -/+ one sample standard deviation of that same window. With
  *   fewer than 2 months the band is 0 and a warning is returned.
@@ -225,12 +227,24 @@ export function forecastCashflow(input: ForecastInput): Forecast {
     .sort((a, b) => a.month.localeCompare(b.month));
   const window = trailing > 0 ? complete.slice(-trailing) : [];
 
-  const bills = recurring.filter((r) => r.amount < 0);
-  const streams = recurring.filter((r) => r.amount > 0);
+  const valid = recurring.filter((r, i) => {
+    const problem = !Object.hasOwn(PER_MONTH, r.frequency)
+      ? 'unknown frequency'
+      : !isIsoDate(r.nextDate)
+        ? 'invalid nextDate'
+        : !Number.isFinite(r.amount)
+          ? 'non-finite amount'
+          : null;
+    if (problem) warnings.push(`recurring item ${i} skipped: ${problem}`);
+    return problem === null;
+  });
+  const bills = valid.filter((r) => r.amount < 0);
+  const streams = valid.filter((r) => r.amount > 0);
   const billMonthly = bills.reduce((a, r) => a - r.amount * PER_MONTH[r.frequency], 0);
 
-  const flexHistory = window.map((c) => Math.max(0, -c.expense - billMonthly));
-  const flexAvg = flexHistory.length > 0 ? mean(flexHistory) : 0;
+  // Unfloored so one low month cannot bias the average or the band upward.
+  const flexHistory = window.map((c) => -c.expense - billMonthly);
+  const flexAvg = flexHistory.length > 0 ? Math.max(0, mean(flexHistory)) : 0;
   const flexSd = sampleStdDev(flexHistory);
   if (window.length === 0) {
     warnings.push('No complete trailing months in cashflowMonthly; flexible spend is 0.');
@@ -260,7 +274,13 @@ export function forecastCashflow(input: ForecastInput): Forecast {
   const [ty, tm, td] = parts(today);
   const firstFraction = (daysInMonth(ty, tm) - td + 1) / daysInMonth(ty, tm);
 
-  if (paySchedule) {
+  const cadence: string | undefined = paySchedule?.cadence;
+  const usePaySchedule = paySchedule !== undefined && cadence === 'biweekly';
+  if (paySchedule && !usePaySchedule) {
+    warnings.push(`pay schedule cadence ${cadence} not supported; using fallback income`);
+  }
+
+  if (paySchedule && usePaySchedule) {
     incomeSource = 'pay-schedule';
     const dates = payDates(paySchedule, today, endDate);
     for (const k of keys) paychecksPerMonth[k] = 0;

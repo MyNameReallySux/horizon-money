@@ -221,6 +221,67 @@ describe('forecastCashflow', () => {
     expect(f.months.every((m) => m.income === 3200)).toBe(true);
   });
 
+  it('averages flexible spend unfloored when a trailing month is below the bills', () => {
+    const f = forecastCashflow({
+      ...base,
+      cashflowMonthly: [
+        { month: '2025-11', income: 3000, expense: -500 },
+        { month: '2025-12', income: 3000, expense: -2700 },
+      ],
+    });
+    expect(f.assumptions.flexibleMonthlyAverage).toBe(600);
+    expect(f.assumptions.flexibleStdDev).toBe(1555.63);
+    expect(f.months[1]?.flexible).toBe(600);
+  });
+
+  it('floors the final flexible figure at 0', () => {
+    const f = forecastCashflow({
+      ...base,
+      cashflowMonthly: [
+        { month: '2025-11', income: 3000, expense: -500 },
+        { month: '2025-12', income: 3000, expense: -700 },
+      ],
+    });
+    expect(f.assumptions.flexibleMonthlyAverage).toBe(0);
+    expect(f.months.every((m) => m.flexible === 0)).toBe(true);
+  });
+
+  it('skips invalid recurring items with a name-free warning', () => {
+    const bad = (over: Partial<Record<keyof RecurringItem, unknown>>) =>
+      ({ ...rent, name: 'SecretName', ...over }) as RecurringItem;
+    const f = forecastCashflow({
+      ...base,
+      recurring: [
+        rent,
+        bad({ frequency: 'fortnightly' }),
+        bad({ nextDate: '01/05/2026' }),
+        bad({ amount: Number.NaN, nextDate: '2026-02-30' }),
+        bad({ amount: Number.NaN }),
+      ],
+    });
+    expect(f.months.every((m) => [m.income, m.fixed, m.flexible, m.net].every(Number.isFinite))).toBe(true);
+    expect(f.months.every((m) => m.fixed === 1000)).toBe(true);
+    expect(f.assumptions.flexibleMonthlyAverage).toBe(1200);
+    const skipped = f.warnings.filter((w) => /skipped/.test(w));
+    expect(skipped).toEqual([
+      'recurring item 1 skipped: unknown frequency',
+      'recurring item 2 skipped: invalid nextDate',
+      'recurring item 3 skipped: invalid nextDate',
+      'recurring item 4 skipped: non-finite amount',
+    ]);
+    expect(skipped.some((w) => /SecretName|1000/.test(w))).toBe(false);
+  });
+
+  it('ignores an unsupported pay schedule cadence and falls back', () => {
+    const f = forecastCashflow({
+      ...base,
+      paySchedule: { ...schedule, cadence: 'monthly' } as unknown as typeof schedule,
+    });
+    expect(f.assumptions.incomeSource).toBe('trailing-average');
+    expect(f.assumptions.paychecksPerMonth).toEqual({});
+    expect(f.warnings).toContain('pay schedule cadence monthly not supported; using fallback income');
+  });
+
   it('warns and zeroes income with no source at all', () => {
     const f = forecastCashflow({ today: '2026-01-01', recurring: [], cashflowMonthly: [] });
     expect(f.assumptions.incomeSource).toBe('none');
