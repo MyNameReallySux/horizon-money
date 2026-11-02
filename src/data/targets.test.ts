@@ -57,7 +57,11 @@ describe('parseTargets', () => {
     ['bad direction', { ...entry, direction: 'up' }],
     ['missing direction', { ...entry, direction: undefined }],
     ['string stretch', { ...entry, stretch: '80' }],
-    ['bad by date', { ...entry, by: '2026-02-31' }],
+    ['negative stretch', { ...entry, stretch: -1 }],
+    ['infinite stretch', { ...entry, stretch: Infinity }],
+    ['max stretch above target', { ...entry, stretch: 150 }],
+    ['min stretch below target', { ...entry, direction: 'min', stretch: 50 }],
+    ['bad by date',{ ...entry, by: '2026-02-31' }],
     ['non-string by', { ...entry, by: 20260630 }],
   ])('drops an entry with a %s and warns once, keeping the rest', (_label, bad) => {
     const good = { ...entry, id: 'good' };
@@ -75,9 +79,36 @@ describe('parseTargets', () => {
     expect(warnings[0]).toMatch(/entry 2\b/);
   });
 
-  it('warnings never contain names or amounts', () => {
-    const { warnings } = parseTargets(file([{ ...entry, name: 'Secret Name', target: -777 }]));
-    expect(warnings.join(' ')).not.toMatch(/Secret|777/);
+  it('accepts a stretch of zero, and one equal to target', () => {
+    const { targets, warnings } = parseTargets(file([{ ...entry, stretch: 0 }, { ...entry, id: 't2', stretch: 100 }]));
+    expect(targets).toHaveLength(2);
+    expect(warnings).toEqual([]);
+  });
+
+  it('warnings never contain names or amounts, on every warning path', () => {
+    const secret = (over: Record<string, unknown>) => ({ ...entry, name: 'Secret Name', target: 777, ...over });
+    const inputs: unknown[] = [
+      { ...file([secret({})]), version: 2 },
+      { version: 1, targets: { name: 'Secret Name', amount: 777 } },
+      file([secret({ id: undefined })]),
+      file([secret({ name: undefined, metric: 'secret-metric-777' })]),
+      file([secret({ period: 'day' })]),
+      file([secret({ metric: '' })]),
+      file([secret({ target: -777 })]),
+      file([secret({ direction: 'up' })]),
+      file([secret({ stretch: -888 })]),
+      file([secret({ stretch: 999 })]),
+      file([secret({ direction: 'min', stretch: 555 })]),
+      file([secret({ by: '2026-02-31' })]),
+      file([secret({}), secret({ name: 'Secret Second', target: 778 })]),
+      file([secret({})], { effective: { from: '2031-01-01', to: '2030-01-01' } }),
+      file([secret({})], { effective: 'Secret Name 777' }),
+    ];
+    for (const input of inputs) {
+      const { warnings } = parseTargets(input);
+      expect(warnings.length).toBeGreaterThan(0);
+      expect(warnings.join(' ')).not.toMatch(/Secret|777|778|888|999|555/);
+    }
   });
 
   it('ignores a malformed effective range with a warning but keeps targets', () => {

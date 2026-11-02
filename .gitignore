@@ -6,7 +6,8 @@ snapshot.json
 raw/
 !src/fixtures/raw/
 manual.json
-targets.json
+targets*.json
+!docs/targets.example.json
 browser/
 paystubs/
 !/src/paystubs/

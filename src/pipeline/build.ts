@@ -132,7 +132,12 @@ export function buildSnapshot(
   if (input.targets !== undefined) {
     const parsed = parseTargets(input.targets);
     parsed.warnings.forEach(warn);
-    goals = mergeTargetGoals(goals, parsed.targets, warn);
+    const { effective } = parsed;
+    if (effective && (today < effective.from || today > effective.to)) {
+      warn(`targets.json: plan not in effect on ${today} (effective ${effective.from}..${effective.to}); targets skipped`);
+    } else {
+      goals = mergeTargetGoals(goals, parsed.targets, warn);
+    }
   }
 
   const snapshot: Snapshot = {

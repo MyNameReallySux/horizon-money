@@ -53,9 +53,11 @@ the Monarch goals. See [targets.example.json](./targets.example.json). A missing
 warning.
 
 - `version` (must be 1; any other version rejects the whole file with a warning), optional
-  `effective: { from, to }` (ISO dates), and `targets[]`.
+  `effective: { from, to }` (ISO dates, `from` not after `to`), and `targets[]`. When `effective` is
+  present and the snapshot date (the local date of the run) falls outside it, no targets load and
+  one warning says so.
 - Target: `id` (unique), `name`, `period` (`week`, `month` or `year`), `metric`, `target`
-  (positive), `direction` (`max` is a cap, `min` is a floor), optional `stretch` (number) and
+  (positive), `direction` (`max` is a cap, `min` is a floor), optional `stretch` (number, at least 0, and no higher than `target` for `max`, no lower for `min`) and
   `by` (ISO date, for yearly goals).
 - `metric` keys the UI knows: `spending` (total), `category:<name>` and `group:<name>` (spend
   caps), `debt-paydown` (dollars to debts), `card-balance` (max total card balance), `interest`

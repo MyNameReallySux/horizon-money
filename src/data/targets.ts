@@ -26,7 +26,7 @@ export interface Target {
   target: number;
   /** `max` is a cap to stay under, `min` a floor to reach. */
   direction: 'max' | 'min';
-  /** A more ambitious value than `target`. */
+  /** A more ambitious value than `target`: finite, at least 0, and no higher than `target` for `max`, no lower for `min`. */
   stretch?: number;
   /** ISO date `YYYY-MM-DD` a yearly goal is due. */
   by?: string;
@@ -56,7 +56,10 @@ function invalidField(x: unknown): string | null {
   if (!isNonEmptyString(x.metric)) return 'has no metric';
   if (!isFiniteNumber(x.target) || x.target <= 0) return 'has a non-positive target';
   if (x.direction !== 'max' && x.direction !== 'min') return 'has an invalid direction';
-  if (x.stretch !== undefined && !isFiniteNumber(x.stretch)) return 'has an invalid stretch';
+  if (x.stretch !== undefined) {
+    if (!isFiniteNumber(x.stretch) || x.stretch < 0) return 'has an invalid stretch';
+    if (x.direction === 'max' ? x.stretch > x.target : x.stretch < x.target) return 'has a stretch on the wrong side of its target';
+  }
   if (x.by !== undefined && !isIsoDate(x.by)) return 'has an invalid by date';
   return null;
 }

@@ -423,6 +423,42 @@ describe('buildSnapshot', () => {
       expect(warnings.filter((w) => w.includes('targets.json'))).toHaveLength(1);
     });
 
+    describe('effective window', () => {
+      const withWindow = { ...targets, effective: { from: '2030-01-01', to: '2030-12-31' } };
+      const on = (y: number, m: number, d: number) => ({ now: new Date(y, m - 1, d, 12) });
+      const run = (t: unknown, opts: { now: Date }) =>
+        buildSnapshot({ accounts: accountsRaw, goals: goalsRaw, targets: t }, opts);
+
+      it.each([
+        ['inside the window', on(2030, 6, 15)],
+        ['on the first day', on(2030, 1, 1)],
+        ['on the last day', on(2030, 12, 31)],
+      ])('loads targets %s', (_label, opts) => {
+        const { snapshot, warnings } = run(withWindow, opts);
+        expect(snapshot.goals.map((g) => g.id)).toEqual(['goal-01', 'week-cap', 'year-fund']);
+        expect(warnings.some((w) => w.includes('targets.json'))).toBe(false);
+      });
+
+      it.each([
+        ['before', on(2029, 12, 31)],
+        ['after', on(2031, 1, 1)],
+      ])('skips targets and warns once when the date is %s the window', (_label, opts) => {
+        const { snapshot, warnings } = run(withWindow, opts);
+        expect(snapshot.goals.map((g) => g.id)).toEqual(['goal-01']);
+        const mine = warnings.filter((w) => w.includes('targets.json'));
+        expect(mine).toHaveLength(1);
+        expect(mine[0]).toMatch(
+          /not in effect on \d{4}-\d{2}-\d{2} \(effective 2030-01-01\.\.2030-12-31\); targets skipped/,
+        );
+        expect(mine[0]).not.toMatch(/Test|100|1000|1500/);
+      });
+
+      it('loads targets whatever the date when there is no effective range', () => {
+        const { snapshot } = run(targets, on(2099, 1, 1));
+        expect(snapshot.goals.map((g) => g.id)).toEqual(['goal-01', 'week-cap', 'year-fund']);
+      });
+    });
+
     it('lets a target replace a Monarch goal with the same id and warns', () => {
       const clash = { version: 1, targets: [{ ...cap, id: 'goal-01' }] };
       const { snapshot, warnings } = buildSnapshot({ accounts: accountsRaw, goals: goalsRaw, targets: clash }, { now });

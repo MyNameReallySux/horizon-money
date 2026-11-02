@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "effective": { "from": "2026-11-01", "to": "2027-10-31" },
+  "effective": { "from": "2030-01-01", "to": "2030-12-31" },
   "targets": [
     { "id": "week-groceries", "name": "Groceries cap", "period": "week", "metric": "category:Groceries", "target": 150, "direction": "max" },
     { "id": "week-dining", "name": "Dining out cap", "period": "week", "metric": "category:Restaurants", "target": 60, "direction": "max", "stretch": 40 },
     { "id": "week-fuel", "name": "Fuel cap", "period": "week", "metric": "category:Gas", "target": 50, "direction": "max" },
     { "id": "month-spending", "name": "Monthly spending cap", "period": "month", "metric": "spending", "target": 4000, "direction": "max", "stretch": 3600 },
     { "id": "month-debt", "name": "Monthly debt paydown", "period": "month", "metric": "debt-paydown", "target": 800, "direction": "min", "stretch": 1000 },
-    { "id": "year-card-balance", "name": "Card balance ceiling", "period": "year", "metric": "card-balance", "target": 2000, "direction": "max", "stretch": 0, "by": "2027-06-30" },
-    { "id": "year-emergency-fund", "name": "Emergency fund", "period": "year", "metric": "emergency-fund", "target": 10000, "direction": "min", "stretch": 12000, "by": "2027-10-31" }
+    { "id": "year-card-balance", "name": "Card balance ceiling", "period": "year", "metric": "card-balance", "target": 2000, "direction": "max", "stretch": 0, "by": "2030-06-30" },
+    { "id": "year-emergency-fund", "name": "Emergency fund", "period": "year", "metric": "emergency-fund", "target": 10000, "direction": "min", "stretch": 12000, "by": "2030-10-31" }
   ]
 }
