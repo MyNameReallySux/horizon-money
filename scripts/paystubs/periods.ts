@@ -14,6 +14,7 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { PAYSTUB_INDEX_VERSION, isPaystubIndex, type PaystubEntry } from '../../src/paystubs/index.ts';
 import { linesFromTextItems, type TextItem } from '../../src/paystubs/pdfText.ts';
 import { parsePayPeriod } from '../../src/paystubs/period.ts';
+import { maskProbeLine } from '../../src/paystubs/probeMask.ts';
 import { resolveDataDir } from '../../src/server/resolveDataDir.ts';
 
 const USAGE = `Usage: pnpm paystubs:periods [options]
@@ -28,11 +29,6 @@ Options:
 Env: HORIZON_DATA_DIR picks the data dir.`;
 
 const PROBE_LINE = /period|pay|begin|end|from|to|date/i;
-const LABEL_WORDS = new Set([
-  'pay', 'period', 'beginning', 'begin', 'start', 'starting', 'ending', 'end', 'from', 'to',
-  'through', 'thru', 'date', 'check', 'of', 'the', 'for', 'week', 'weekly', 'biweekly',
-  'employee', 'id', 'name', 'no', 'start',
-]);
 
 /** Text of the PDF, one string per line. */
 async function extractLines(path: string): Promise<string[]> {
@@ -49,15 +45,6 @@ async function extractLines(path: string): Promise<string[]> {
   }
   return lines;
 }
-
-/** Letters the PDF emitted one per item can still arrive spaced out; rejoin them before masking. */
-const collapseSplitLetters = (line: string): string =>
-  line.replace(/(?<![A-Za-z])[A-Za-z](?: [A-Za-z](?![A-Za-z]))+/g, (run) => run.replace(/ /g, ''));
-
-const mask = (line: string): string =>
-  collapseSplitLetters(line)
-    .replace(/\d/g, '#')
-    .replace(/[A-Za-z]+/g, (w) => (LABEL_WORDS.has(w.toLowerCase()) ? w : 'x'.repeat(w.length)));
 
 function writeAtomic(target: string, data: string): void {
   mkdirSync(dirname(target), { recursive: true });
@@ -93,7 +80,7 @@ async function main(): Promise<void> {
     // The line after a match is shown too: a header row's values sit there, and masking hides them.
     const lines = all.filter((l, i) => PROBE_LINE.test(l) || PROBE_LINE.test(all[i - 1] ?? ''));
     console.log(`masked probe of 1 pdf (digits are #, unknown words are x): ${lines.length} matching lines`);
-    for (const line of lines) console.log(mask(line.trim()));
+    for (const line of lines) console.log(maskProbeLine(line.trim()));
     return;
   }
 

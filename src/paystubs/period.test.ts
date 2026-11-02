@@ -60,6 +60,14 @@ describe('parsePayPeriod', () => {
     expect(parsePayPeriod('Check Date 01/17/2025 Period Beginning 01/01/2025 Period Ending 01/14/2025')).toEqual(JAN);
   });
 
+  it('does not take a date near a bare from or to as the period', () => {
+    expect(parsePayPeriod('Net pay to account\n01/17/2025\nFrom 01/01/2025')).toBeNull();
+  });
+
+  it('reads from-through as an adjacent pair', () => {
+    expect(parsePayPeriod('From 01/01/2025 Through 01/14/2025')).toEqual(JAN);
+  });
+
   it('rejects text without a period', () => {
     expect(parsePayPeriod('')).toBeNull();
     expect(parsePayPeriod('Check Date 01/17/2025 Net Pay')).toBeNull();

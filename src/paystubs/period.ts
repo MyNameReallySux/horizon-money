@@ -14,11 +14,13 @@ const TABLE_LOOKAHEAD = 3;
 const TABLE_LABEL = /check\s*date|pay\s*date|period\s*start(?:ing)?|period\s*begin(?:ning)?|period\s*end(?:ing)?/gi;
 const SEPARATOR = String.raw`\s*(?:-|–|—|to|through|thru)\s*`;
 const RANGE = new RegExp(String.raw`period[^0-9]{0,${LABEL_REACH}}?${DATE}${SEPARATOR}${DATE}`, 'i');
+/** Bare `from`/`to` are too common to label a lone date, so they count only as an adjacent pair. */
+const FROM_RANGE = new RegExp(String.raw`\bfrom\s+${DATE}${SEPARATOR}${DATE}`, 'i');
 const PAY_PERIOD_PAIR = new RegExp(String.raw`pay period[^0-9]{0,${LABEL_REACH}}?${DATE}\s+${DATE}`, 'i');
 const DATE_G = new RegExp(DATE, 'gi');
 const LABELS: { kind: 'start' | 'end'; pattern: RegExp }[] = [
-  { kind: 'start', pattern: /period\s*(?:begin(?:ning)?|start(?:ing)?)|(?:begin(?:ning)?|start(?:ing)?)\s*date|\bfrom\b/gi },
-  { kind: 'end', pattern: /period\s*end(?:ing)?|end(?:ing)?\s*date|\b(?:to|through|thru)\b/gi },
+  { kind: 'start', pattern: /period\s*(?:begin(?:ning)?|start(?:ing)?)|(?:begin(?:ning)?|start(?:ing)?)\s*date/gi },
+  { kind: 'end', pattern: /period\s*end(?:ing)?|end(?:ing)?\s*date/gi },
 ];
 
 function toIso(raw: string): string | null {
@@ -116,7 +118,7 @@ export function parsePayPeriod(text: string): PayPeriod | null {
   const table = tableRow(text);
   if (table !== undefined) return table;
   const flat = text.replace(/\s+/g, ' ');
-  const range = RANGE.exec(flat) ?? PAY_PERIOD_PAIR.exec(flat);
+  const range = RANGE.exec(flat) ?? FROM_RANGE.exec(flat) ?? PAY_PERIOD_PAIR.exec(flat);
   if (range) {
     const found = validPeriod(toIso(range[1]!), toIso(range[2]!));
     if (found) return found;
