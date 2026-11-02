@@ -6,6 +6,10 @@ snapshot.json
 raw/
 !src/fixtures/raw/
 manual.json
+browser/
+paystubs/
+!/src/paystubs/
+!/src/fixtures/paystubs/
 *.snapshot.json
 !src/fixtures/*.snapshot.json
 *.pdf
